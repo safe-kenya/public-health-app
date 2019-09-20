@@ -2,15 +2,10 @@ import emitize from "./emitize";
 import { query, mutate } from "./requests";
 
 const studentsData = [];
-
 const parentsData = [];
-
 const bussesData = [];
-
 const driversData = [];
-
 const routesData = [];
-
 const schedulesData = [];
 
 var Data = (function() {
@@ -40,89 +35,37 @@ var Data = (function() {
 
   // when the data store gets innitialized, fetch all data and store in cache
   query(`{
-    students {
-      id
-      names
-      gender
-      route {
-        name
-      }
-      parent {
-        name
-      }
-    }
-    buses {
-      id,
-      plate
-      make
-      size
-    }
-    drivers {
-      id
-      username
-      email
-      phone
-    }
-    parents {
-      id
-      name
-      gender
-      email
-      phone
-      students {
-        names
-        gender
-        route {
-          name
-        }
-      }
-    }
-    routes {
-      id
-      name
-      description
-      path {
-        lat
-        lng
-      }
-    }
     schedules {
       id
       time
       name
       days
-      route {
-        id,
-        name
-      },
       bus{
-        id
         make
+        plate
+      }
+      route {
+        id
+        name
+        students {
+          id
+          names
+          gender
+          route {
+            name
+          }
+          parent {
+            phone
+            gender
+          },
+          parent2 {
+            phone
+            gender
+          }
+        }
       }
     }
   }`).then(response => {
-    // let { students } = response
-    students = response.students.map(student => {
-      if (student.route) student.route = student.route.name;
-
-      if (student.parent) student.parent = student.parent.name;
-
-      return student;
-    });
-    subs.students({ students });
-
-    busses = response.buses;
-    subs.busses({ busses });
-
-    parents = response.parents;
-    subs.parents({ parents });
-
-    routes = response.routes;
-    subs.routes({ routes });
-
-    drivers = response.drivers;
-    subs.drivers({ drivers });
-
     schedules = response.schedules;
     subs.schedules({ schedules });
   });

@@ -8,7 +8,7 @@ import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 
 import dropOfList from "./dropOfList";
 import map from "./map";
-import Data from "../../utils/data";
+import Data from "../../services/data";
 
 const renderTabBar = props => (
   <TabBar
@@ -26,11 +26,27 @@ class Screen extends React.Component {
       { key: "dropOfList", title: "Drop Off List" },
       { key: "map", title: "Your Location" }
     ],
-    schedules: [],
-    students: []
+    selectedTrip: null,
+    schedules: []
   };
 
-  componentDidMount() {}
+  tripSelected(trip) {
+    let selectedTrip = this.state.schedules.filter(
+      schedule => schedule.id === trip
+    )[0];
+    this.setState({
+      selectedTrip
+    });
+  }
+
+  componentDidMount() {
+    const schedules = Data.schedules.list();
+    this.setState({ schedules });
+
+    Data.schedules.subscribe(schedule => {
+      this.setState(schedule);
+    });
+  }
 
   render() {
     return (
@@ -48,32 +64,15 @@ class Screen extends React.Component {
         >
           <Dropdown
             label="Select Trip"
-            data={[
-              {
-                value: "Trip One"
-              },
-              {
-                value: "Trip Two"
-              }
-            ]}
+            data={this.state.schedules.map(schedule => {
+              return {
+                label: schedule.name,
+                value: schedule.id
+              };
+            })}
+            onChangeText={trip => this.tripSelected(trip)}
           />
-          {/* <Dropdown
-            label="Bus Used"
-            data={[
-              {
-                value: "KBA 220A"
-              },
-              {
-                value: "KBC 450X"
-              }
-            ]}
-          /> */}
-
-          {/* <Text style={[material.body1]}>DropOff Progress</Text> */}
         </View>
-        {/* <Text>{"\n"}</Text> */}
-        {/* <Text style={material.subheading}>Recent events</Text> */}
-
         <TabView
           navigationState={this.state}
           renderScene={SceneMap({
