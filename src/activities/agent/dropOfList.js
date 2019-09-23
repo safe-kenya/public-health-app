@@ -3,31 +3,41 @@ import React from "react";
 import { List, Checkbox, Searchbar } from "react-native-paper";
 import { Text, ScrollView, StyleSheet, View, Dimensions } from "react-native";
 import { Appbar, ProgressBar, Colors } from "react-native-paper";
+import { Dropdown } from "react-native-material-dropdown";
+
+import Data from "../../services/data";
 
 class Screen extends React.Component {
   state = {
+    schedules: [],
     students: [
       {
         name: "Sheila R. Carrillo"
       },
       {
         name: "Robert M. Jacobs"
-      },
-      {
-        name: "Claire J. Brown"
-      },
-      {
-        name: "Walter C. Stork"
-      },
-      {
-        name: "Joseph C. Deleon"
-      },
-      {
-        name: "Lena E. Edward"
       }
     ],
     dropOffMap: {}
   };
+
+  tripSelected(trip) {
+    let selectedTrip = this.state.schedules.filter(
+      schedule => schedule.id === trip
+    )[0];
+    this.setState({
+      students: selectedTrip.route.students
+    });
+  }
+
+  componentDidMount() {
+    const schedules = Data.schedules.list();
+    this.setState({ schedules });
+
+    Data.schedules.subscribe(schedule => {
+      this.setState(schedule);
+    });
+  }
 
   render() {
     return (
@@ -44,13 +54,31 @@ class Screen extends React.Component {
             // bottom: 0
           }}
         >
-          <Searchbar
+          <View
+            style={{
+              paddingRight: 20,
+              paddingLeft: 20,
+              paddingBottom: 5
+            }}
+          >
+            <Dropdown
+              label="Select Trip"
+              data={this.state.schedules.map(schedule => {
+                return {
+                  label: schedule.name,
+                  value: schedule.id
+                };
+              })}
+              onChangeText={trip => this.tripSelected(trip)}
+            />
+          </View>
+          {/* <Searchbar
             placeholder="Enter student name to search..."
             onChangeText={query => {
               this.setState({ firstQuery: query });
             }}
             value={""}
-          />
+          /> */}
         </View>
         {/* <ProgressBar progress={0.5} color={Colors.blue} /> */}
         <List.Section>
