@@ -568,6 +568,27 @@ var Data = (function() {
       },
       getOne(id) {}
     },
+    events: {
+      create: event =>
+        new Promise(async (resolve, reject) => {
+          const { id } = await mutate(
+            `
+            mutation ($Ievent: Ievent!) {
+              events {
+                create(event: $Ievent) {
+                  id
+                }
+              }
+            }           
+        `,
+            {
+              Ievent: event
+            }
+          );
+
+          resolve();
+        })
+    },
     picksAndDrops: {
       create(id) {
         return {};

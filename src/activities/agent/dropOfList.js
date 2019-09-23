@@ -7,7 +7,9 @@ import {
   StyleSheet,
   View,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  ToastAndroid,
+  Alert
 } from "react-native";
 import { Appbar, ProgressBar, Colors } from "react-native-paper";
 import { Dropdown } from "react-native-material-dropdown";
@@ -28,19 +30,57 @@ class Screen extends React.Component {
       schedule => schedule.id === trip
     )[0];
 
-    // if route is missing, for whatever reason
-    if (selectedTrip.route)
-      this.setState({
-        students: selectedTrip.route.students
-      });
+    if (!this.state[selectedTrip.id]) {
+      this.setState(
+        {
+          [selectedTrip.id]: {}
+        },
+        () => {
+          // if route is missing, for whatever reason
+          if (selectedTrip.route)
+            this.setState({
+              selectedTrip,
+              students: selectedTrip.route.students
+            });
+        }
+      );
+    } else {
+      if (selectedTrip.route)
+        this.setState({
+          selectedTrip,
+          students: selectedTrip.route.students
+        });
+    }
   }
 
   callParent(parent) {
     // call parent here
-    call({
-      number: parent.phone,
-      prompt: false
-    }).catch(console.error);
+    if (parent.phone)
+      return call({
+        number: parent.phone,
+        prompt: false
+      }).catch(console.error);
+
+    ToastAndroid.show("Parents phone is not available", ToastAndroid.SHORT);
+  }
+
+  async selectStudent(student) {
+    this.setState({
+      [this.state.selectedTrip.id]: {
+        ...this.state.dropOffMap,
+        [student.id]:
+          this.state.dropOffMap[student.id] === "checked"
+            ? "unchecked"
+            : "checked"
+      }
+    });
+
+    Data.events.create({
+      student: student.id,
+      time: new Date().toLocaleTimeString(),
+      type: "CHECKEDON",
+      trip: this.state.selectedTrip.id
+    });
   }
 
   componentDidMount() {
@@ -85,13 +125,6 @@ class Screen extends React.Component {
               onChangeText={trip => this.tripSelected(trip)}
             />
           </View>
-          {/* <Searchbar
-            placeholder="Enter student name to search..."
-            onChangeText={query => {
-              this.setState({ firstQuery: query });
-            }}
-            value={""}
-          /> */}
         </View>
         {/* <ProgressBar progress={0.5} color={Colors.blue} /> */}
         <List.Section>
@@ -110,26 +143,43 @@ class Screen extends React.Component {
                     }
                   >
                     <Checkbox
-                      status={this.state.dropOffMap[student.id]}
+                      status={
+                        this.state[this.state.selectedTrip.id][student.id]
+                      }
                       onPress={() => {
-                        this.setState({
-                          dropOffMap: {
-                            ...this.state.dropOffMap,
-                            [student.id]:
-                              this.state.dropOffMap[student.id] === "checked"
-                                ? "unchecked"
-                                : "checked"
-                          }
-                        });
+                        if (
+                          this.state[this.state.selectedTrip.id] &&
+                          this.state[this.state.selectedTrip.id][student.id] !==
+                            "checked"
+                        ) {
+                          Alert.alert(
+                            "Confirmation",
+                            `Are you sure you want to tick ${student.names.toUpperCase()} off this list?`,
+                            [
+                              {
+                                text: "Cancel",
+                                onPress: () => console.log("Cancel Pressed"),
+                                style: "cancel"
+                              },
+                              {
+                                text: "OK",
+                                onPress: async () => this.selectStudent(student)
+                              }
+                            ],
+                            { cancelable: false }
+                          );
+                        }
                       }}
                     />
                   </View>
                 )}
                 right={props => (
                   <TouchableOpacity
-                    onPress={() => this.callParent(student.parent)}
+                    onPress={() =>
+                      this.callParent(student.parent || student.parent2)
+                    }
                   >
-                    <Icon name="phone-forwarded" size={27} color="#00000" />
+                    <Icon name="phone-forwarded" size={25} color="black" />
                   </TouchableOpacity>
                 )}
               />
