@@ -8,7 +8,6 @@ import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 import dropOfList from "./dropOfList";
 import map from "./map";
 
-
 const renderTabBar = props => (
   <TabBar
     {...props}
@@ -28,10 +27,6 @@ class Screen extends React.Component {
     selectedTrip: null,
     schedules: []
   };
-
-
-
-
 
   render() {
     return (

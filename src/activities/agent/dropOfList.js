@@ -1,23 +1,25 @@
 import React from "react";
 
 import { List, Checkbox, Searchbar } from "react-native-paper";
-import { Text, ScrollView, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Text,
+  ScrollView,
+  StyleSheet,
+  View,
+  Dimensions,
+  TouchableOpacity
+} from "react-native";
 import { Appbar, ProgressBar, Colors } from "react-native-paper";
 import { Dropdown } from "react-native-material-dropdown";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import call from "react-native-phone-call";
 
 import Data from "../../services/data";
 
 class Screen extends React.Component {
   state = {
     schedules: [],
-    students: [
-      {
-        name: "Sheila R. Carrillo"
-      },
-      {
-        name: "Robert M. Jacobs"
-      }
-    ],
+    students: [],
     dropOffMap: {}
   };
 
@@ -25,9 +27,20 @@ class Screen extends React.Component {
     let selectedTrip = this.state.schedules.filter(
       schedule => schedule.id === trip
     )[0];
-    this.setState({
-      students: selectedTrip.route.students
-    });
+
+    // if route is missing, for whatever reason
+    if (selectedTrip.route)
+      this.setState({
+        students: selectedTrip.route.students
+      });
+  }
+
+  callParent(parent) {
+    // call parent here
+    call({
+      number: parent.phone,
+      prompt: false
+    }).catch(console.error);
   }
 
   componentDidMount() {
@@ -86,8 +99,8 @@ class Screen extends React.Component {
           {this.state.students.map(student => {
             return (
               <List.Item
-                key={student.name}
-                title={student.name}
+                key={student.id}
+                title={student.names}
                 left={props => (
                   <View
                     style={
@@ -97,13 +110,13 @@ class Screen extends React.Component {
                     }
                   >
                     <Checkbox
-                      status={this.state.dropOffMap[student.name]}
+                      status={this.state.dropOffMap[student.id]}
                       onPress={() => {
                         this.setState({
                           dropOffMap: {
                             ...this.state.dropOffMap,
-                            [student.name]:
-                              this.state.dropOffMap[student.name] === "checked"
+                            [student.id]:
+                              this.state.dropOffMap[student.id] === "checked"
                                 ? "unchecked"
                                 : "checked"
                           }
@@ -111,6 +124,13 @@ class Screen extends React.Component {
                       }}
                     />
                   </View>
+                )}
+                right={props => (
+                  <TouchableOpacity
+                    onPress={() => this.callParent(student.parent)}
+                  >
+                    <Icon name="phone-forwarded" size={27} color="#00000" />
+                  </TouchableOpacity>
                 )}
               />
             );
