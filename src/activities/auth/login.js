@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Image, StyleSheet, View, Text } from "react-native";
 import { Button, TextInput, Colors } from "react-native-paper";
-import imageLogo from "../../images/logo-v4-yellow.png";
+import imageLogo from "../../images/logo-v4.png";
 
 // import imageLogo from "../assets/images/logo.png";
 
@@ -67,7 +67,7 @@ class LoginScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: "#ee9e3dff",
     alignItems: "center",
     justifyContent: "space-between"
   },
