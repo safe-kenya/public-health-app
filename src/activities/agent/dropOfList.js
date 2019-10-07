@@ -11,11 +11,10 @@ import {
   ToastAndroid,
   Alert
 } from "react-native";
-import { Appbar, ProgressBar, Colors, Button } from "react-native-paper";
+import { Appbar, ProgressBar, Colors, Button, Snackbar } from "react-native-paper";
 import { Dropdown } from "react-native-material-dropdown";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import call from "react-native-phone-call";
-import { Col, Row, Grid } from "react-native-easy-grid";
 
 import Data from "../../services/data";
 
@@ -130,6 +129,7 @@ class Screen extends React.Component {
 
   render() {
     return (
+      <>
       <ScrollView>
         <View
           style={{
@@ -177,7 +177,7 @@ class Screen extends React.Component {
                   ) : (
                     <Button
                       mode="contained"
-                      onPress={() => this.setState({ tripStarted: true })}
+                      onPress={() => this.setState({ tripStarted: true, visible: false })}
                     >
                       START
                     </Button>
@@ -204,13 +204,13 @@ class Screen extends React.Component {
                     }
                   >
                     <Checkbox
-                      disabled={!this.state.tripStarted}
                       status={
                         this.state[this.state.selectedTrip.id][student.id]
                       }
                       onPress={() => {
                         if (
                           this.state[this.state.selectedTrip.id] &&
+                          this.state.tripStarted &&
                           this.state[this.state.selectedTrip.id][student.id] !==
                             "checked"
                         ) {
@@ -230,6 +230,8 @@ class Screen extends React.Component {
                             ],
                             { cancelable: false }
                           );
+                        } else {
+                          this.setState({ visible: true })
                         }
                       }}
                     />
@@ -251,6 +253,17 @@ class Screen extends React.Component {
           })}
         </List.Section>
       </ScrollView>
+      <Snackbar
+          visible={this.state.visible}
+          onDismiss={() => this.setState({ visible: false })}
+          action={{
+            label:'Dismiss',
+            onPress:() => this.setState({ visible: false })
+          }}
+        >
+          You need to start the trip to start checking off students.
+        </Snackbar>
+        </>
     );
   }
 }
