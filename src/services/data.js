@@ -1,3 +1,5 @@
+import Geolocation from "react-native-geolocation-service";
+import { PermissionsAndroid } from "react-native";
 import emitize from "./emitize";
 import { query, mutate } from "./requests";
 
@@ -7,6 +9,25 @@ const bussesData = [];
 const driversData = [];
 const routesData = [];
 const schedulesData = [];
+
+export async function requestLocationPermission() {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: "Example App",
+        message: "Example App access to your location "
+      }
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log("You can use the location");
+    } else {
+      console.log("location permission denied");
+    }
+  } catch (err) {
+    console.warn(err);
+  }
+}
 
 var Data = (function() {
   var instance;
@@ -34,41 +55,46 @@ var Data = (function() {
   // subs.students(9); //emits '9' to all listeners;
 
   // when the data store gets innitialized, fetch all data and store in cache
-  query(`{
-    schedules {
-      id
-      time
-      name
-      days
-      bus{
-        make
-        plate
-      }
-      route {
+  const fetch = async () => {
+    const response = await query(`{
+      schedules {
         id
+        time
         name
-        students {
+        days
+        bus{
+          make
+          plate
+        }
+        route {
           id
-          names
-          gender
-          route {
-            name
-          }
-          parent {
-            phone
+          name
+          students {
+            id
+            names
             gender
-          },
-          parent2 {
-            phone
-            gender
+            route {
+              name
+            }
+            parent {
+              phone
+              gender
+            },
+            parent2 {
+              phone
+              gender
+            }
           }
         }
       }
-    }
-  }`).then(response => {
+    }`);
+
     schedules = response.schedules;
     subs.schedules({ schedules });
-  });
+  };
+
+  fetch();
+  requestLocationPermission();
 
   function createInstance() {
     var object = new Object("Instance here");
@@ -76,6 +102,9 @@ var Data = (function() {
   }
 
   return {
+    async refetch() {
+      fetch();
+    },
     getInstance: function() {
       if (!instance) {
         instance = createInstance();
@@ -588,6 +617,132 @@ var Data = (function() {
 
           resolve();
         })
+    },
+    trips: {
+      start(id) {
+        new Promise(async (resolve, reject) => {
+          const res = await mutate(
+            `
+            mutation ($Itrip: Itrip!) {
+              trips {
+                create(trip: $Itrip) {
+                  id
+                }
+              }
+            }       
+        `,
+            {
+              Itrip: {
+                startedAt: new Date().toISOString(),
+                schedule: id
+              }
+            }
+          );
+
+          resolve();
+
+          const sendToServer = async (lat, lng) => {
+            await mutate(
+              `
+                mutation ($IlocReport: IlocReport!) {
+                  locReports {
+                    create(locreport: $IlocReport) {
+                      id
+                    }
+                  }
+                }
+            `,
+              {
+                IlocReport: {
+                  trip: res.trips.create.id,
+                  time: new Date().toLocaleTimeString(),
+                  loc: {
+                    lat,
+                    lng
+                  }
+                }
+              }
+            );
+          };
+
+          Geolocation.getCurrentPosition(
+            async position => {
+              const {
+                coords: { longitude: lng, latitude: lat }
+              } = position;
+              sendToServer(lat, lng);
+            },
+            error => {
+              console.warn("error getting current location!", error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+
+          // start watching teh gps position and sending it to the api
+          Geolocation.watchPosition(
+            async position => {
+              const {
+                coords: { longitude: lng, latitude: lat }
+              } = position;
+              sendToServer(lat, lng);
+            },
+            error => {
+              console.warn("error watching current location!", error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+        });
+      },
+      finish(id) {
+        new Promise(async (resolve, reject) => {
+          await mutate(
+            `
+            mutation ($Itrip: Itrip!) {
+              trips {
+                create(trip: $Itrip) {
+                  id
+                }
+              }
+            }       
+        `,
+            {
+              Itrip: {
+                completedAt: new Date().toISOString(),
+                schedule: id
+              }
+            }
+          );
+
+          resolve();
+        });
+      },
+      cancel(id) {
+        new Promise(async (resolve, reject) => {
+          await mutate(
+            `
+            mutation ($Itrip: Itrip!) {
+              trips {
+                create(trip: $Itrip) {
+                  id
+                }
+              }
+            }          
+        `,
+            {
+              Itrip: {
+                isCancelled: true,
+                schedule: id
+              }
+            }
+          );
+
+          resolve();
+        });
+      },
+      list() {
+        return [];
+      },
+      getOne(id) {}
     },
     picksAndDrops: {
       create(id) {
