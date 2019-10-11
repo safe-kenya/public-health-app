@@ -12,7 +12,13 @@ import {
   ToastAndroid,
   Alert
 } from "react-native";
-import { Appbar, ProgressBar, Colors, Button, Snackbar } from "react-native-paper";
+import {
+  Appbar,
+  ProgressBar,
+  Colors,
+  Button,
+  Snackbar
+} from "react-native-paper";
 import { Dropdown } from "react-native-material-dropdown";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import call from "react-native-phone-call";
@@ -250,221 +256,229 @@ class Screen extends React.Component {
 
   render() {
     return (
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={() => this.onRefresh()}
-          />
-        }
-      >
-        <View
-          style={{
-            height: this.state.tripStarted === true ? 60 : 120,
-            backgroundColor: "white",
-            color: "black"
-          }}
+      <>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={() => this.onRefresh()}
+            />
+          }
         >
           <View
             style={{
-              paddingRight: 20,
-              paddingLeft: 20,
-              paddingBottom: 5
+              height: this.state.tripStarted === true ? 60 : 120,
+              backgroundColor: "white",
+              color: "black"
             }}
           >
-            <View style={{ flexDirection: "row" }}>
-              <View style={{ flex: 1 }}>
-                <Dropdown
-                  disabled={this.state.tripStarted}
-                  label="Select Trip"
-                  data={this.state.schedules.map(schedule => {
-                    return {
-                      label: schedule.name,
-                      value: schedule.id
-                    };
-                  })}
-                  onChangeText={trip => this.tripSelected(trip)}
-                />
-              </View>
-
-              {!this.state.selectedTrip ? null : this.state.tripStarted ? (
-                <View style={{ width: 96, marginLeft: 8, marginTop: 25 }}>
-                  <Button mode="contained" onPress={() => this.completeTrip()}>
-                    FINISH
-                  </Button>
+            <View
+              style={{
+                paddingRight: 20,
+                paddingLeft: 20,
+                paddingBottom: 5
+              }}
+            >
+              <View style={{ flexDirection: "row" }}>
+                <View style={{ flex: 1 }}>
+                  <Dropdown
+                    disabled={this.state.tripStarted}
+                    label="Select Trip"
+                    data={this.state.schedules.map(schedule => {
+                      return {
+                        label: schedule.name,
+                        value: schedule.id
+                      };
+                    })}
+                    onChangeText={trip => this.tripSelected(trip)}
+                  />
                 </View>
-              ) : null}
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              {!this.state.selectedTrip ? null : (
-                <View
-                  style={{
-                    width: this.state.completedTrips.includes(
-                      this.state.selectedTrip.id
-                    )
-                      ? 250
-                      : 96,
-                    marginLeft: 0,
-                    marginTop: 10
-                  }}
-                >
-                  {this.state.tripStarted ? null : (
+
+                {!this.state.selectedTrip ? null : this.state.tripStarted ? (
+                  <View style={{ width: 96, marginLeft: 8, marginTop: 25 }}>
                     <Button
                       mode="contained"
-                      color="green"
-                      disabled={this.state.completedTrips.includes(
-                        this.state.selectedTrip.id
-                      )}
-                      onPress={() => this.startTtrip()}
+                      onPress={() => this.completeTrip()}
                     >
-                      {!this.state.completedTrips.includes(
+                      FINISH
+                    </Button>
+                  </View>
+                ) : null}
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                {!this.state.selectedTrip ? null : (
+                  <View
+                    style={{
+                      width: this.state.completedTrips.includes(
                         this.state.selectedTrip.id
                       )
-                        ? "START"
-                        : "COMPLETED FOR TODAY"}
-                    </Button>
-                  )}
-                </View>
-              )}
-
-              {!this.state.selectedTrip ||
-              this.state.completedTrips.includes(
-                this.state.selectedTrip.id
-              ) ? null : this.state.tripStarted ? null : (
-                <View
-                  style={{
-                    width: this.state.cancelledTrips.includes(
-                      this.state.selectedTrip.id
-                    )
-                      ? 120
-                      : 200,
-                    marginLeft: 4,
-                    marginTop: 10
-                  }}
-                >
-                  <Button
-                    mode="contained"
-                    disabled={this.state.cancelledTrips.includes(
-                      this.state.selectedTrip.id
-                    )}
-                    color="red"
-                    onPress={() => {
-                      Alert.alert(
-                        "Confirmation",
-                        `Are you sure you cancel the trip for today?`,
-                        [
-                          {
-                            text: "Cancel",
-                            onPress: () => console.log("Cancel Pressed"),
-                            style: "cancel"
-                          },
-                          {
-                            text: "OK",
-                            onPress: async () => this.cancelTrip()
-                          }
-                        ],
-                        { cancelable: false }
-                      );
+                        ? 250
+                        : 96,
+                      marginLeft: 0,
+                      marginTop: 10
                     }}
                   >
-                    {this.state.cancelledTrips.includes(
-                      this.state.selectedTrip.id
-                    )
-                      ? "CANCELLED"
-                      : "CANCEL FOR TODAY"}
-                  </Button>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-        {/* <ProgressBar progress={0.5} color={Colors.blue} /> */}
-        <List.Section>
-          {/* <List.Subheader>Select student after drop off</List.Subheader> */}
-          {this.state.students.map(student => {
-            return (
-              <List.Item
-                key={student.id}
-                title={student.names}
-                left={props => (
-                  <View
-                    style={
-                      {
-                        // marginTop: 10
-                      }
-                    }
-                  >
-                    <Checkbox
-                      status={
-                        this.state[this.state.selectedTrip.id][student.id]
-                      }
-                      onPress={() => this.checkoffStudent(student)}
-                    />
+                    {this.state.tripStarted ? null : (
+                      <Button
+                        mode="contained"
+                        color="green"
+                        disabled={this.state.completedTrips.includes(
+                          this.state.selectedTrip.id
+                        )}
+                        onPress={() => this.startTtrip()}
+                      >
+                        {!this.state.completedTrips.includes(
+                          this.state.selectedTrip.id
+                        )
+                          ? "START"
+                          : "COMPLETED FOR TODAY"}
+                      </Button>
+                    )}
                   </View>
                 )}
-                right={props =>
-                  this.state.tripStarted ? (
-                    <View style={{ flexDirection: "row" }}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          this.callParent(student.parent || student.parent2)
-                        }
-                      >
-                        <Icon name="phone-forwarded" size={25} color="black" />
-                      </TouchableOpacity>
 
-                      {!this.state.selectedTrip ? null : this.state
-                          .tripStarted ? null : (
-                        <View
-                          style={{ width: 96, marginLeft: 4, marginTop: 10 }}
-                        >
-                          <Button
-                            mode="contained"
-                            color="red"
-                            onPress={() =>
-                              Alert.alert(
-                                `Cancel this trip for ${student.names.toUpperCase()}?`,
-                                `This is to indicate that this student was not able to take this trip either for lateness etc`,
-                                [
-                                  {
-                                    text: "NO",
-                                    onPress: () =>
-                                      console.log("Cancel Pressed"),
-                                    style: "cancel"
-                                  },
-                                  {
-                                    text: "Yes, I want to cancel",
-                                    onPress: async () =>
-                                      this.cancelStudentPickup()
-                                  }
-                                ],
-                                { cancelable: false }
-                              )
-                            }
-                          >
-                            Cancel
-                          </Button>
-                        </View>
+                {!this.state.selectedTrip ||
+                this.state.completedTrips.includes(
+                  this.state.selectedTrip.id
+                ) ? null : this.state.tripStarted ? null : (
+                  <View
+                    style={{
+                      width: this.state.cancelledTrips.includes(
+                        this.state.selectedTrip.id
+                      )
+                        ? 120
+                        : 200,
+                      marginLeft: 4,
+                      marginTop: 10
+                    }}
+                  >
+                    <Button
+                      mode="contained"
+                      disabled={this.state.cancelledTrips.includes(
+                        this.state.selectedTrip.id
                       )}
+                      color="red"
+                      onPress={() => {
+                        Alert.alert(
+                          "Confirmation",
+                          `Are you sure you cancel the trip for today?`,
+                          [
+                            {
+                              text: "Cancel",
+                              onPress: () => console.log("Cancel Pressed"),
+                              style: "cancel"
+                            },
+                            {
+                              text: "OK",
+                              onPress: async () => this.cancelTrip()
+                            }
+                          ],
+                          { cancelable: false }
+                        );
+                      }}
+                    >
+                      {this.state.cancelledTrips.includes(
+                        this.state.selectedTrip.id
+                      )
+                        ? "CANCELLED"
+                        : "CANCEL FOR TODAY"}
+                    </Button>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+          {/* <ProgressBar progress={0.5} color={Colors.blue} /> */}
+          <List.Section>
+            {/* <List.Subheader>Select student after drop off</List.Subheader> */}
+            {this.state.students.map(student => {
+              return (
+                <List.Item
+                  key={student.id}
+                  title={student.names}
+                  left={props => (
+                    <View
+                      style={
+                        {
+                          // marginTop: 10
+                        }
+                      }
+                    >
+                      <Checkbox
+                        status={
+                          this.state[this.state.selectedTrip.id][student.id]
+                        }
+                        onPress={() => this.checkoffStudent(student)}
+                      />
                     </View>
-                  ) : null
-                }
-              />
-            );
-          })}
-        </List.Section>
-      </ScrollView>
-      <Snackbar
+                  )}
+                  right={props =>
+                    this.state.tripStarted ? (
+                      <View style={{ flexDirection: "row" }}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            this.callParent(student.parent || student.parent2)
+                          }
+                        >
+                          <Icon
+                            name="phone-forwarded"
+                            size={25}
+                            color="black"
+                          />
+                        </TouchableOpacity>
+
+                        {!this.state.selectedTrip ? null : this.state
+                            .tripStarted ? null : (
+                          <View
+                            style={{ width: 96, marginLeft: 4, marginTop: 10 }}
+                          >
+                            <Button
+                              mode="contained"
+                              color="red"
+                              onPress={() =>
+                                Alert.alert(
+                                  `Cancel this trip for ${student.names.toUpperCase()}?`,
+                                  `This is to indicate that this student was not able to take this trip either for lateness etc`,
+                                  [
+                                    {
+                                      text: "NO",
+                                      onPress: () =>
+                                        console.log("Cancel Pressed"),
+                                      style: "cancel"
+                                    },
+                                    {
+                                      text: "Yes, I want to cancel",
+                                      onPress: async () =>
+                                        this.cancelStudentPickup()
+                                    }
+                                  ],
+                                  { cancelable: false }
+                                )
+                              }
+                            >
+                              Cancel
+                            </Button>
+                          </View>
+                        )}
+                      </View>
+                    ) : null
+                  }
+                />
+              );
+            })}
+          </List.Section>
+        </ScrollView>
+        <Snackbar
           visible={this.state.visible}
           onDismiss={() => this.setState({ visible: false })}
           action={{
-            label:'Dismiss',
-            onPress:() => this.setState({ visible: false })
+            label: "Dismiss",
+            onPress: () => this.setState({ visible: false })
           }}
         >
           You need to start the trip to start checking off students.
         </Snackbar>
-        </>
+      </>
     );
   }
 }
