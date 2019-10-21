@@ -1,20 +1,59 @@
 import React from "react";
+import Data from "../../services/data";
 
 import { List, Checkbox } from "react-native-paper";
-import { Text, ScrollView, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Text,
+  ScrollView,
+  StyleSheet,
+  View,
+  Dimensions,
+  RefreshControl
+} from "react-native";
 
 class Screen extends React.Component {
+  state = {
+    refreshing: false,
+    parent: {
+      students: []
+    }
+  };
+
+  async onRefresh() {
+    await Data.refetch();
+    this.setState({ refreshing: false });
+  }
+  componentDidMount() {
+    const [parent = { students: [] }] = Data.parents.list();
+
+    this.setState({ parent });
+
+    Data.parents.subscribe(parent => {
+      this.setState(parent);
+    });
+  }
   render() {
     return (
-      <ScrollView>
-        <List.Section>
-          <List.Subheader>Events Today</List.Subheader>
-          <List.Item
-            title="Bus pickup from home, on time"
-            description="Logged  at 7:32 am"
-            left={props => <List.Icon {...props} icon="location-on" />}
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={this.state.refreshing}
+            onRefresh={() => this.onRefresh()}
           />
-          <List.Item
+        }
+      >
+        <List.Section>
+          {/* <List.Subheader>Events Today</List.Subheader> */}
+          {this.state.parent.students.map(student =>
+            student.events.map(event => (
+              <List.Item
+                title={`${event.trip.schedule.name}`}
+                description={`Logged  at ${event.time}`}
+                left={props => <List.Icon {...props} icon="location-on" />}
+              />
+            ))
+          )}
+          {/* <List.Item
             title="Arrival at school, late"
             description="Logged  at 8:32 am"
             left={props => <List.Icon {...props} icon="location-on" />}
@@ -28,10 +67,10 @@ class Screen extends React.Component {
             title="Buss dropoff Home, late"
             description="Logged  at 5:43 am"
             left={props => <List.Icon {...props} icon="location-on" />}
-          />
+          /> */}
         </List.Section>
 
-        <List.Section>
+        {/* <List.Section>
           <List.Subheader>Yesterday</List.Subheader>
           <List.Item
             title="Bus pickup from home, on time"
@@ -77,7 +116,7 @@ class Screen extends React.Component {
             description="Logged  at 5:43 am"
             left={props => <List.Icon {...props} icon="location-on" />}
           />
-        </List.Section>
+        </List.Section> */}
       </ScrollView>
     );
   }

@@ -10,6 +10,7 @@ import {
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"; // remove PROVIDER_GOOGLE import if not using Google Maps
 import Geolocation from "react-native-geolocation-service";
 import { material } from "react-native-typography";
+import Data from "../../services/data";
 
 const styles = StyleSheet.create({
   container: {
@@ -25,78 +26,47 @@ let mapRef;
 
 class Screen extends React.Component {
   state = {
+    parent: {
+      students: []
+    },
     markers: []
   };
 
   async componentDidMount() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: "Smart kids needs to know your location",
-          message:
-            "So we can display it on your map and share it with he interested parties.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK"
-        }
-      );
+    const parents = Data.parents.list();
 
-      if (granted) {
-        console.log("fetching location");
-        Geolocation.getCurrentPosition(
-          ({ coords: { longitude, latitude } }) => {
-            console.log({ longitude, latitude });
-            this.setState(
-              {
-                markers: [...this.state.markers, { longitude, latitude }]
-              },
-              () => {
-                const { latitude, longitude } = this.state.markers[0];
+    const parent = parents[0];
 
-                mapRef.animateToRegion(
-                  {
-                    latitude,
-                    longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01
-                  },
-                  2000
-                );
-              }
-            );
+    const tempMmarkers = [];
+    parent.students.map(student =>
+      student.events.map(event =>
+        event.trip.locReports.map(report => {
+          tempMmarkers.push({
+            time: report.time,
+            longitude: report.loc.lng,
+            latitude: report.loc.lat
+          });
+        })
+      )
+    );
 
-            // now watch
-            // Geolocation.watchPosition(
-            //   position => {
-            //     console.log(position);
-            //     this.setState({ markers: [...this.state.markers, position] });
-
-            //     this.mapRef.fitToSuppliedMarkers(
-            //       someArrayOfMarkers,
-            //       false // not animated
-            //     );
-            //   },
-            //   error => {
-            //     console.log(error.code, error.message);
-            //   },
-            //   { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-            // );
+    this.setState({ parent, markers: tempMmarkers }, () => {
+      const { latitude, longitude } = this.state.markers[0];
+      setTimeout(() => {
+        mapRef.animateToRegion(
+          {
+            latitude,
+            longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01
           },
-          error => {
-            console.log(error.code, error.message);
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+          2000
         );
-      }
-    } catch (error) {
-      console.log(error);
-    }
+      }, 1000);
+    });
   }
-  render() {
-    // console.log(this.state);
-    // const { coords = ({ longitude, latitude } = {}) } = this.state.position;
 
+  render() {
     return (
       <View style={styles.container}>
         <MapView
@@ -119,22 +89,24 @@ class Screen extends React.Component {
             );
           })}
         </MapView>
-        <View
-          style={{
-            position: "absolute",
-            width: "97%",
-            height: 60,
-            backgroundColor: "white",
-            color: "black",
-            padding: 20,
-            // margin: 10,
-            bottom: 0
-          }}
-        >
-          <Text style={material.subheading}>
-            Last recieved location as of: 7:32 pm
-          </Text>
-        </View>
+        {!this.state.markers[0] ? null : (
+          <View
+            style={{
+              position: "absolute",
+              width: "97%",
+              height: 60,
+              backgroundColor: "white",
+              color: "black",
+              padding: 20,
+              // margin: 10,
+              bottom: 0
+            }}
+          >
+            <Text style={material.subheading}>
+              Last recieved location as of: {`${this.state.markers[0].time}`}
+            </Text>
+          </View>
+        )}
       </View>
     );
   }

@@ -1,11 +1,12 @@
 import axios from "axios";
+import { AsyncStorage } from "react-native";
 
 let API;
 
 if (__DEV__) {
   API = `http://10.0.3.2:4000`;
 } else {
-  API = `https://staging-smartkids.herokuapp.com`;
+  API = `https://development-smartkids.herokuapp.com`;
 }
 
 const query = (query, params) => {
@@ -14,9 +15,17 @@ const query = (query, params) => {
     try {
       const {
         data: { data }
-      } = await axios.post(`${API}/graph`, {
-        query
-      });
+      } = await axios.post(
+        `${API}/graph`,
+        {
+          query
+        },
+        {
+          headers: {
+            authorization: await AsyncStorage.getItem("authorization")
+          }
+        }
+      );
 
       resolve(data);
     } catch (error) {
@@ -34,10 +43,18 @@ const mutate = (query, variables) => {
     try {
       const {
         data: { data }
-      } = await axios.post(`${API}/graph`, {
-        query,
-        variables
-      });
+      } = await axios.post(
+        `${API}/graph`,
+        {
+          query,
+          variables
+        },
+        {
+          headers: {
+            authorization: await AsyncStorage.getItem("authorization")
+          }
+        }
+      );
 
       resolve(data);
     } catch (error) {
@@ -46,4 +63,4 @@ const mutate = (query, variables) => {
   });
 };
 
-export { query, mutate };
+export { query, mutate, API };

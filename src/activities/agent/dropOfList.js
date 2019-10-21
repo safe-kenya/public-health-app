@@ -33,41 +33,42 @@ class Screen extends React.Component {
     completedTrips: [],
     inCompletedStudentsList: [],
     dropOffMap: {},
+    tripId: null,
     tripStarted: false,
     refreshing: false,
     tripSelected: null
   };
 
   tripSelected(trip) {
-    let selectedTrip = this.state.schedules.filter(
+    let selectedSchedule = this.state.schedules.filter(
       schedule => schedule.id === trip
     )[0];
 
-    if (!this.state[selectedTrip.id]) {
+    if (!this.state[selectedSchedule.id]) {
       this.setState(
         {
-          [selectedTrip.id]: {}
+          [selectedSchedule.id]: {}
         },
         () => {
           // if route is missing, for whatever reason
-          if (selectedTrip.route)
+          if (selectedSchedule.route)
             this.setState({
-              selectedTrip,
-              students: selectedTrip.route.students
+              selectedSchedule,
+              students: selectedSchedule.route.students
             });
         }
       );
     } else {
-      if (selectedTrip.route)
+      if (selectedSchedule.route)
         this.setState({
-          selectedTrip,
-          students: selectedTrip.route.students
+          selectedSchedule,
+          students: selectedSchedule.route.students
         });
     }
   }
 
   startTtrip = () => {
-    if (this.state.cancelledTrips.includes(this.state.selectedTrip.id)) {
+    if (this.state.cancelledTrips.includes(this.state.selectedSchedule.id)) {
       return Alert.alert(
         "Start Cancelled trip?",
         `This trip was marked cancelled for today, if you continue. you will be expected to complete it. `,
@@ -79,9 +80,11 @@ class Screen extends React.Component {
           },
           {
             text: "OK",
-            onPress: () => {
-              Data.trips.start(this.state.selectedTrip.id);
-              this.setState({ tripStarted: true });
+            onPress: async () => {
+              const tripId = await Data.trips.start(
+                this.state.selectedSchedule.id
+              );
+              this.setState({ tripStarted: true, tripId });
             }
           }
         ],
@@ -100,9 +103,11 @@ class Screen extends React.Component {
         },
         {
           text: "Ok, Continue",
-          onPress: () => {
-            Data.trips.start(this.state.selectedTrip.id);
-            this.setState({ tripStarted: true });
+          onPress: async () => {
+            const tripId = await Data.trips.start(
+              this.state.selectedSchedule.id
+            );
+            this.setState({ tripStarted: true, tripId });
           }
         }
       ],
@@ -112,7 +117,7 @@ class Screen extends React.Component {
 
   callParent(parent) {
     // call parent here
-    if (parent.phone)
+    if (parent && parent.phone)
       return call({
         number: parent.phone,
         prompt: false
@@ -123,8 +128,8 @@ class Screen extends React.Component {
 
   async overideStudent(student) {
     this.setState({
-      [this.state.selectedTrip.id]: {
-        ...this.state[this.state.selectedTrip.id],
+      [this.state.selectedSchedule.id]: {
+        ...this.state[this.state.selectedSchedule.id],
         [student.id]: "indeterminate"
       }
     });
@@ -133,16 +138,16 @@ class Screen extends React.Component {
       student: student.id,
       time: new Date().toLocaleTimeString(),
       type: "CHECKEDON",
-      trip: this.state.selectedTrip.id
+      trip: this.state.selectedSchedule.id
     });
   }
 
   async selectStudent(student) {
     this.setState({
-      [this.state.selectedTrip.id]: {
-        ...this.state[this.state.selectedTrip.id],
+      [this.state.selectedSchedule.id]: {
+        ...this.state[this.state.selectedSchedule.id],
         [student.id]:
-          this.state[this.state.selectedTrip.id][student.id] === "checked"
+          this.state[this.state.selectedSchedule.id][student.id] === "checked"
             ? "unchecked"
             : "checked"
       }
@@ -152,17 +157,36 @@ class Screen extends React.Component {
       student: student.id,
       time: new Date().toLocaleTimeString(),
       type: "CHECKEDON",
-      trip: this.state.selectedTrip.id
+      trip: this.state.tripId
+    });
+  }
+
+  async cancelPickup(student) {
+    this.setState({
+      [this.state.selectedSchedule.id]: {
+        ...this.state[this.state.selectedSchedule.id],
+        [student.id]: "indeterminate"
+      }
+    });
+
+    Data.events.create({
+      student: student.id,
+      time: new Date().toLocaleTimeString(),
+      type: "CHECKEDOFF",
+      trip: this.state.tripId
     });
   }
 
   async completeTrip() {
     this.setState({
-      completedTrips: [...this.state.completedTrips, this.state.selectedTrip.id]
+      completedTrips: [
+        ...this.state.completedTrips,
+        this.state.selectedSchedule.id
+      ]
     });
 
     const completedList = this.state.students.map(student => {
-      const checked = this.state[this.state.selectedTrip.id][student.id];
+      const checked = this.state[this.state.selectedSchedule.id][student.id];
 
       return checked === "checked" ? true : false;
     });
@@ -178,7 +202,7 @@ class Screen extends React.Component {
               // overide here
               const inCompletedStudentsList = this.state.students.filter(
                 student => {
-                  const checked = this.state[this.state.selectedTrip.id][
+                  const checked = this.state[this.state.selectedSchedule.id][
                     student.id
                   ];
 
@@ -190,7 +214,7 @@ class Screen extends React.Component {
                 this.overideStudent(student)
               );
 
-              Data.trips.finish(this.state.selectedTrip.id);
+              Data.trips.finish(this.state.selectedSchedule.id);
 
               this.setState({ inCompletedStudentsList, tripStarted: false });
             },
@@ -204,22 +228,25 @@ class Screen extends React.Component {
         { cancelable: false }
       );
 
-    Data.trips.finish(this.state.selectedTrip.id);
+    Data.trips.finish(this.state.selectedSchedule.id);
     this.setState({ tripStarted: false });
   }
 
   async cancelTrip() {
-    Data.trips.cancel(this.state.selectedTrip.id);
+    Data.trips.cancel(this.state.selectedSchedule.id);
 
     this.setState({
-      cancelledTrips: [...this.state.cancelledTrips, this.state.selectedTrip.id]
+      cancelledTrips: [
+        ...this.state.cancelledTrips,
+        this.state.selectedSchedule.id
+      ]
     });
   }
 
   checkoffStudent(student) {
     if (
-      this.state[this.state.selectedTrip.id] &&
-      this.state[this.state.selectedTrip.id][student.id] !== "checked"
+      this.state[this.state.selectedSchedule.id] &&
+      this.state[this.state.selectedSchedule.id][student.id] !== "checked"
     ) {
       Alert.alert(
         "Confirmation",
@@ -294,7 +321,8 @@ class Screen extends React.Component {
                   />
                 </View>
 
-                {!this.state.selectedTrip ? null : this.state.tripStarted ? (
+                {!this.state.selectedSchedule ? null : this.state
+                    .tripStarted ? (
                   <View style={{ width: 96, marginLeft: 8, marginTop: 25 }}>
                     <Button
                       mode="contained"
@@ -306,11 +334,11 @@ class Screen extends React.Component {
                 ) : null}
               </View>
               <View style={{ flexDirection: "row" }}>
-                {!this.state.selectedTrip ? null : (
+                {!this.state.selectedSchedule ? null : (
                   <View
                     style={{
                       width: this.state.completedTrips.includes(
-                        this.state.selectedTrip.id
+                        this.state.selectedSchedule.id
                       )
                         ? 250
                         : 96,
@@ -323,12 +351,12 @@ class Screen extends React.Component {
                         mode="contained"
                         color="green"
                         disabled={this.state.completedTrips.includes(
-                          this.state.selectedTrip.id
+                          this.state.selectedSchedule.id
                         )}
                         onPress={() => this.startTtrip()}
                       >
                         {!this.state.completedTrips.includes(
-                          this.state.selectedTrip.id
+                          this.state.selectedSchedule.id
                         )
                           ? "START"
                           : "COMPLETED FOR TODAY"}
@@ -337,14 +365,14 @@ class Screen extends React.Component {
                   </View>
                 )}
 
-                {!this.state.selectedTrip ||
+                {!this.state.selectedSchedule ||
                 this.state.completedTrips.includes(
-                  this.state.selectedTrip.id
+                  this.state.selectedSchedule.id
                 ) ? null : this.state.tripStarted ? null : (
                   <View
                     style={{
                       width: this.state.cancelledTrips.includes(
-                        this.state.selectedTrip.id
+                        this.state.selectedSchedule.id
                       )
                         ? 120
                         : 200,
@@ -355,7 +383,7 @@ class Screen extends React.Component {
                     <Button
                       mode="contained"
                       disabled={this.state.cancelledTrips.includes(
-                        this.state.selectedTrip.id
+                        this.state.selectedSchedule.id
                       )}
                       color="red"
                       onPress={() => {
@@ -378,7 +406,7 @@ class Screen extends React.Component {
                       }}
                     >
                       {this.state.cancelledTrips.includes(
-                        this.state.selectedTrip.id
+                        this.state.selectedSchedule.id
                       )
                         ? "CANCELLED"
                         : "CANCEL FOR TODAY"}
@@ -397,16 +425,11 @@ class Screen extends React.Component {
                   key={student.id}
                   title={student.names}
                   left={props => (
-                    <View
-                      style={
-                        {
-                          // marginTop: 10
-                        }
-                      }
-                    >
+                    <View>
                       <Checkbox
+                        disabled={!this.state.tripStarted && !this.state.tripId}
                         status={
-                          this.state[this.state.selectedTrip.id][student.id]
+                          this.state[this.state.selectedSchedule.id][student.id]
                         }
                         onPress={() => this.checkoffStudent(student)}
                       />
@@ -416,18 +439,37 @@ class Screen extends React.Component {
                     this.state.tripStarted ? (
                       <View style={{ flexDirection: "row" }}>
                         <TouchableOpacity
-                          onPress={() =>
-                            this.callParent(student.parent || student.parent2)
-                          }
+                          onPress={() => this.cancelPickup(student)}
                         >
                           <Icon
-                            name="phone-forwarded"
-                            size={25}
+                            style={{
+                              paddingRight: 7,
+                              paddingTop: 7
+                            }}
+                            name="cancel"
+                            size={20}
                             color="black"
                           />
                         </TouchableOpacity>
+                        {!student.parent ? null : (
+                          <TouchableOpacity
+                            onPress={() =>
+                              this.callParent(student.parent || student.parent2)
+                            }
+                          >
+                            <Icon
+                              style={{
+                                paddingRight: 7,
+                                paddingTop: 7
+                              }}
+                              name="phone-forwarded"
+                              size={20}
+                              color="black"
+                            />
+                          </TouchableOpacity>
+                        )}
 
-                        {!this.state.selectedTrip ? null : this.state
+                        {!this.state.selectedSchedule ? null : this.state
                             .tripStarted ? null : (
                           <View
                             style={{ width: 96, marginLeft: 4, marginTop: 10 }}

@@ -1,5 +1,6 @@
 import React from "react";
 import { GiftedChat } from "react-native-gifted-chat";
+import Data from "../../services/data";
 
 class Screen extends React.Component {
   state = {
@@ -11,7 +12,8 @@ class Screen extends React.Component {
       messages: [
         {
           _id: 1,
-          text: "Hello gardian, can you please explain to us what problem you want to report?",
+          text:
+            "Hello gardian, can you please explain to us what problem you want to report?",
           createdAt: new Date(),
           user: {
             _id: 2,
@@ -24,9 +26,14 @@ class Screen extends React.Component {
   }
 
   onSend(messages = []) {
-    this.setState(previousState => ({
-      messages: GiftedChat.append(previousState.messages, messages)
-    }));
+    this.setState(
+      previousState => ({
+        messages: GiftedChat.append(previousState.messages, messages)
+      }),
+      () => {
+        Data.complaints.send(messages);
+      }
+    );
   }
 
   render() {

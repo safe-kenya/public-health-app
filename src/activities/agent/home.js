@@ -7,6 +7,7 @@ import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 
 import dropOfList from "./dropOfList";
 import map from "./map";
+import Data from "../../services/data";
 
 const renderTabBar = props => (
   <TabBar
@@ -21,18 +22,28 @@ class Screen extends React.Component {
   state = {
     index: 0,
     routes: [
-      { key: "dropOfList", title: "Drop Off List" },
+      { key: "dropOfList", title: "Your Trips" },
       { key: "map", title: "Your Location" }
     ],
     selectedTrip: null,
-    schedules: []
+    schedules: [],
+    drivers: [{ username: '' }]
   };
+
+  componentDidMount() {
+    const drivers = Data.drivers.list();
+    this.setState({ drivers });
+
+    Data.drivers.subscribe(drivers => {
+      this.setState(drivers);
+    });
+  }
 
   render() {
     return (
       <>
         <Appbar.Header>
-          <Appbar.Content title="Welcome, Kamau" subtitle="Bus Driver" />
+          <Appbar.Content title={"Welcome, " + this.state.drivers[0].username} />
         </Appbar.Header>
 
         <TabView

@@ -30,19 +30,25 @@ class RecoverScreen extends React.Component {
           <Image source={imageLogo} style={styles.logo} />
           <TextInput
             label="Phone Number"
-            value={this.state.text}
-            onChangeText={text => this.setState({ text })}
+            mode="outlined"
+            style={{
+              marginBottom: 10
+            }}
+            // value={this.state.phone}
+            onChangeText={phone => this.setState({ phone })}
           />
-          <TextInput
-            label="Password"
-            value={this.state.text}
-            onChangeText={text => this.setState({ text })}
-          />
-          <Text
-            style={{ color: "blue" }}
-            onPress={() => this.props.navigation.navigate("accountRecover")}
-          >{`I dont remember my password`}</Text>
-          <Text>{`\n`}</Text>
+          {this.state.password ? (
+            <TextInput
+              label="Password"
+              mode="outlined"
+              style={{
+                marginBottom: 10
+              }}
+              value={this.state.password}
+              secureTextEntry={true}
+              onChangeText={password => this.setState({ password })}
+            />
+          ) : null}
           <Button
             style={{ "padding-top": 20 }}
             mode="contained"
@@ -66,7 +72,7 @@ class RecoverScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ee9e3dff",
+    // backgroundColor: "#ee9e3dff",
     alignItems: "center",
     justifyContent: "space-between"
   },

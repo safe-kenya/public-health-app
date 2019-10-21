@@ -5,6 +5,7 @@ import { Appbar } from "react-native-paper";
 import { material } from "react-native-typography";
 
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
+import Data from "../../services/data";
 
 import messages from "./messages";
 import map from "./map";
@@ -28,6 +29,9 @@ const renderTabBar = props => (
 class Screen extends React.Component {
   state = {
     index: 0,
+    parent: {
+      students: []
+    },
     routes: [
       { key: "messages", title: "Events" },
       { key: "map", title: "On Map" },
@@ -35,11 +39,24 @@ class Screen extends React.Component {
     ]
   };
 
+  componentDidMount() {
+    const [parent = { students: [] }] = Data.parents.list();
+
+    this.setState({ parent });
+
+    Data.parents.subscribe(parent => {
+      this.setState(parent);
+    });
+  }
+
   render() {
     return (
       <>
         <Appbar.Header>
-          <Appbar.Content title="Welcome, Gathoni" subtitle="Parent, mother" />
+          <Appbar.Content
+            title={this.state.parent.name}
+            subtitle={`Guardian, ${this.state.parent.gender}`}
+          />
         </Appbar.Header>
 
         <View
@@ -56,10 +73,12 @@ class Screen extends React.Component {
               }
             ]}
           >
-            John N. kumani, Mathew .W Njeri
+            {`${this.state.parent.students
+              .map(student => student.names)
+              .join(", ")}`}
           </Text>
 
-          <Text style={material.subheading}>Current Status:</Text>
+          {/* <Text style={material.subheading}>Current Status:</Text>
           <Text
             style={[
               material.headline,
@@ -69,7 +88,7 @@ class Screen extends React.Component {
             ]}
           >
             In school
-          </Text>
+          </Text> */}
         </View>
 
         {/* <Text>{"\n"}</Text> */}

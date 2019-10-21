@@ -34,6 +34,8 @@ target 'SmartKids' do
 
   pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
 
+  pod 'react-native-spinkit', :path => '../node_modules/react-native-spinkit'
+
   target 'SmartKidsTests' do
     inherit! :search_paths
     # Pods for testing

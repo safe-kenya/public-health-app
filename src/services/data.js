@@ -1,5 +1,6 @@
 import Geolocation from "react-native-geolocation-service";
 import { PermissionsAndroid } from "react-native";
+import { ToastAndroid } from "react-native";
 import emitize from "./emitize";
 import { query, mutate } from "./requests";
 
@@ -29,7 +30,7 @@ export async function requestLocationPermission() {
   }
 }
 
-var Data = (function() {
+var Data = (function () {
   var instance;
 
   // local variables to keep a cache of every entity
@@ -39,6 +40,8 @@ var Data = (function() {
   var busses = bussesData;
   var routes = routesData;
   var schedules = schedulesData;
+  var locationWatchId = null;
+  var manualWatchId = null;
 
   // subscriptions for every entity to keep track of everyone subscribing to any data
   var subs = {};
@@ -57,6 +60,41 @@ var Data = (function() {
   // when the data store gets innitialized, fetch all data and store in cache
   const fetch = async () => {
     const response = await query(`{
+      drivers{
+        id
+        username
+      }
+      parents {
+        id
+        name
+        gender
+        students {
+          id
+          names
+          gender
+          events {
+            id
+            type
+            time
+            trip {
+              locReports{
+                id,
+                time
+                loc{
+                  lat,
+                  lng
+                }
+              }
+              schedule {
+                id
+                name
+                time
+                end_time
+              }
+            }
+          }
+        }
+      }
       schedules {
         id
         time
@@ -91,6 +129,12 @@ var Data = (function() {
 
     schedules = response.schedules;
     subs.schedules({ schedules });
+
+    parents = response.parents;
+    subs.parents({ parents });
+
+    drivers = response.drivers;
+    subs.drivers({ drivers });
   };
 
   fetch();
@@ -105,7 +149,7 @@ var Data = (function() {
     async refetch() {
       fetch();
     },
-    getInstance: function() {
+    getInstance: function () {
       if (!instance) {
         instance = createInstance();
       }
@@ -203,84 +247,17 @@ var Data = (function() {
         subs.students = cb;
         return students;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     parents: {
-      create: data =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `
-          mutation ($Iparent: Iparent!) {
-            parents {
-              create(parent: $Iparent) {
-                id
-              }
-            }
-          }`,
-            {
-              Iparent: data
-            }
-          );
-
-          data.id = id;
-
-          parents = [...parents, data];
-          subs.parents({ parents });
-          resolve();
-        }),
-      update: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `
-          mutation ($parent: Uparent!) {
-            parents {
-              update(parent: $parent) {
-                id
-              }
-            }
-          }`,
-            {
-              parent: data
-            }
-          );
-
-          const subtract = parents.filter(({ id }) => id !== data.id);
-          parents = [data, ...subtract];
-          subs.parents({ parents });
-          resolve();
-        }),
-      delete: data =>
-        new Promise(async (resolve, reject) => {
-          mutate(
-            `
-          mutation ($Iparent: Uparent!) {
-            parents {
-              archive(parent: $Iparent) {
-                id
-              }
-            }
-          } `,
-            {
-              Iparent: {
-                id: data.id
-              }
-            }
-          );
-
-          const subtract = parents.filter(({ id }) => id !== data.id);
-          parents = [...subtract];
-          subs.parents({ parents });
-          resolve();
-        }),
       list() {
         return parents;
       },
       subscribe(cb) {
-        // listen for even change on the students observables
         subs.parents = cb;
         return parents;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     drivers: {
       create: data =>
@@ -359,7 +336,7 @@ var Data = (function() {
         subs.drivers = cb;
         return drivers;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     busses: {
       create: bus =>
@@ -432,7 +409,7 @@ var Data = (function() {
         subs.busses = cb;
         return busses;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     routes: {
       create: data =>
@@ -509,7 +486,7 @@ var Data = (function() {
         subs.routes = cb;
         return routes;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     schedules: {
       create: schedule =>
@@ -595,7 +572,7 @@ var Data = (function() {
         subs.schedules = cb;
         return schedules;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     events: {
       create: event =>
@@ -620,7 +597,7 @@ var Data = (function() {
     },
     trips: {
       start(id) {
-        new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
           const res = await mutate(
             `
             mutation ($Itrip: Itrip!) {
@@ -639,7 +616,7 @@ var Data = (function() {
             }
           );
 
-          resolve();
+          resolve(res.trips.create.id);
 
           const sendToServer = async (lat, lng) => {
             await mutate(
@@ -665,29 +642,49 @@ var Data = (function() {
             );
           };
 
-          Geolocation.getCurrentPosition(
-            async position => {
-              const {
-                coords: { longitude: lng, latitude: lat }
-              } = position;
-              sendToServer(lat, lng);
-            },
-            error => {
-              console.warn("error getting current location!", error);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          );
+          ToastAndroid.show("Starting get location", ToastAndroid.SHORT);
+
+          manualWatchId = setInterval(() => {
+            Geolocation.getCurrentPosition(
+              async position => {
+                const {
+                  coords: { longitude: lng, latitude: lat }
+                } = position;
+                // ToastAndroid.show(
+                //   "fetch loc:" + JSON.stringify({ lat, lng }),
+                //   ToastAndroid.SHORT
+                // );
+                sendToServer(lat, lng);
+              },
+              error => {
+                ToastAndroid.show(
+                  "error getting current location!" + JSON.stringify(error),
+                  ToastAndroid.SHORT
+                );
+              },
+              { enableHighAccuracy: true, timeout: 25000, maximumAge: 3600000 }
+            );
+          }, 300000);
+
+          ToastAndroid.show("Starting watch location", ToastAndroid.SHORT);
 
           // start watching teh gps position and sending it to the api
-          Geolocation.watchPosition(
+          locationWatchId = Geolocation.watchPosition(
             async position => {
               const {
                 coords: { longitude: lng, latitude: lat }
               } = position;
+              ToastAndroid.show(
+                "new watch loc recieved:" + JSON.stringify({ lat, lng }),
+                ToastAndroid.SHORT
+              );
               sendToServer(lat, lng);
             },
             error => {
-              console.warn("error watching current location!", error);
+              ToastAndroid.show(
+                "Error watching current location!" + JSON.stringify(error),
+                ToastAndroid.SHORT
+              );
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
           );
@@ -695,6 +692,9 @@ var Data = (function() {
       },
       finish(id) {
         new Promise(async (resolve, reject) => {
+          Geolocation.clearWatch(locationWatchId);
+          clearInterval.clearWatch(manualWatchId);
+
           await mutate(
             `
             mutation ($Itrip: Itrip!) {
@@ -742,14 +742,35 @@ var Data = (function() {
       list() {
         return [];
       },
-      getOne(id) {}
+      getOne(id) { }
     },
-    picksAndDrops: {
-      create(id) {
-        return {};
-      },
-      update(id, data) {
-        return;
+    complaints: {
+      send(message) {
+        return new Promise(async (resolve, reject) => {
+          const res = await mutate(
+            `
+            mutation ($Icomplaint: Icomplaint!) {
+              complaints {
+                create(complaint: $Icomplaint) {
+                  id,
+                  time,
+                  parent{
+                    id
+                  }
+                }
+              }
+            }          
+        `,
+            {
+              Icomplaint: {
+                time: new Date().toLocaleTimeString(),
+                content: message[0].text
+              }
+            }
+          );
+
+          resolve(res);
+        });
       },
       delete(id) {
         return;
@@ -757,22 +778,7 @@ var Data = (function() {
       list() {
         return [];
       },
-      getOne(id) {}
-    },
-    messages: {
-      create(id) {
-        return {};
-      },
-      update(id, data) {
-        return;
-      },
-      delete(id) {
-        return;
-      },
-      list() {
-        return [];
-      },
-      getOne(id) {}
+      getOne(id) { }
     },
     communication: {
       sms: {
@@ -788,7 +794,7 @@ var Data = (function() {
         list() {
           return [];
         },
-        getOne(id) {}
+        getOne(id) { }
       },
       email: {
         create(id) {
@@ -803,7 +809,7 @@ var Data = (function() {
         list() {
           return [];
         },
-        getOne(id) {}
+        getOne(id) { }
       }
     }
   };
