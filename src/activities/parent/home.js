@@ -1,5 +1,12 @@
 import React from "react";
-import { Text, ScrollView, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Text,
+  ScrollView,
+  StyleSheet,
+  View,
+  Dimensions,
+  AsyncStorage
+} from "react-native";
 
 import { Appbar } from "react-native-paper";
 import { material } from "react-native-typography";
@@ -56,6 +63,13 @@ class Screen extends React.Component {
           <Appbar.Content
             title={this.state.parent.name}
             subtitle={`Guardian, ${this.state.parent.gender}`}
+          />
+          <Appbar.Action
+            icon="power-settings-new"
+            onPress={() => {
+              AsyncStorage.clear();
+              this.props.navigation.navigate("ParentLogin");
+            }}
           />
         </Appbar.Header>
 

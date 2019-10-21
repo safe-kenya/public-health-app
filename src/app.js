@@ -1,5 +1,6 @@
-import navigationStructure from "./navigation";
+import { App, Auth, AuthLoading } from "./navigation";
 import BackgroundFetch from "react-native-background-fetch";
+import AuthLoad from "./activities/auth/loading";
 
 // Configure it.
 BackgroundFetch.configure(
@@ -41,8 +42,24 @@ BackgroundFetch.status(status => {
   }
 });
 
-import { createAppContainer, createStackNavigator } from "react-navigation";
+import {
+  createAppContainer,
+  createStackNavigator,
+  createSwitchNavigator
+} from "react-navigation";
 
-export const AppNavigator = createStackNavigator(navigationStructure);
+export const AppStack = createStackNavigator(App);
+export const AuthStack = createStackNavigator(Auth);
 
-export default createAppContainer(AppNavigator);
+export default createAppContainer(
+  createSwitchNavigator(
+    {
+      AuthLoading: AuthLoad,
+      App: AppStack,
+      Auth: AuthStack
+    },
+    {
+      initialRouteName: "AuthLoading"
+    }
+  )
+);

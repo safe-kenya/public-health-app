@@ -1,5 +1,12 @@
 import React from "react";
-import { Text, ScrollView, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Text,
+  ScrollView,
+  StyleSheet,
+  View,
+  AsyncStorage,
+  Dimensions
+} from "react-native";
 
 import { Appbar, ProgressBar, Colors } from "react-native-paper";
 
@@ -27,15 +34,15 @@ class Screen extends React.Component {
     ],
     selectedTrip: null,
     schedules: [],
-    drivers: [{ username: '' }]
+    driver: { username: "" }
   };
 
   componentDidMount() {
-    const drivers = Data.drivers.list();
-    this.setState({ drivers });
+    const driver = Data.driver.get();
+    this.setState({ driver });
 
-    Data.drivers.subscribe(drivers => {
-      this.setState(drivers);
+    Data.driver.subscribe(driver => {
+      this.setState(driver);
     });
   }
 
@@ -43,7 +50,14 @@ class Screen extends React.Component {
     return (
       <>
         <Appbar.Header>
-          <Appbar.Content title={"Welcome, " + this.state.drivers[0].username} />
+          <Appbar.Content title={"Welcome, " + this.state.driver.username} />
+          <Appbar.Action
+            icon="power-settings-new"
+            onPress={() => {
+              AsyncStorage.clear();
+              this.props.navigation.navigate("DriverLogin");
+            }}
+          />
         </Appbar.Header>
 
         <TabView

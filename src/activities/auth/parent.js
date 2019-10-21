@@ -62,6 +62,7 @@ class LoginScreen extends React.Component {
 
   async verifyCode(password) {
     try {
+      ToastAndroid.show(`Verifying Code`, ToastAndroid.SHORT);
       const res = await axios.post(`${API}/auth/verify/sms`, {
         user: this.state.user,
         password
@@ -71,10 +72,12 @@ class LoginScreen extends React.Component {
         data: { token, data: userData }
       } = res;
 
+      ToastAndroid.show(`Code Verification Successfull`, ToastAndroid.SHORT);
+
       await AsyncStorage.setItem("authorization", token);
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 
-      this.props.navigation.navigate("AgentHome");
+      this.props.navigation.navigate("ParentHome");
 
       Data.refetch();
       return;
@@ -129,7 +132,7 @@ class LoginScreen extends React.Component {
       );
       const res = await axios.post(`${API}/auth/login`, authData);
 
-      _this.setState({ error: null });
+      _this.setState({ error: null, loading: false });
 
       const {
         data: { success }
@@ -222,7 +225,7 @@ class LoginScreen extends React.Component {
                 <Text>{`or`}</Text>
                 <Text
                   style={{ color: "blue" }}
-                  onPress={() => this.props.navigation.navigate("driverLogin")}
+                  onPress={() => this.props.navigation.navigate("DriverLogin")}
                 >{`Login as a driver`}</Text>
               </View>
             </>

@@ -8,8 +8,10 @@ const studentsData = [];
 const parentsData = [];
 const bussesData = [];
 const driversData = [];
+const driverData = {};
 const routesData = [];
 const schedulesData = [];
+const parentData = [];
 
 export async function requestLocationPermission() {
   try {
@@ -30,13 +32,15 @@ export async function requestLocationPermission() {
   }
 }
 
-var Data = (function () {
+var Data = (function() {
   var instance;
 
   // local variables to keep a cache of every entity
   var students = studentsData;
   var parents = parentsData;
   var drivers = driversData;
+  var driver = driverData;
+  var parent = parentData;
   var busses = bussesData;
   var routes = routesData;
   var schedules = schedulesData;
@@ -51,6 +55,8 @@ var Data = (function () {
   emitize(subs, "busses");
   emitize(subs, "routes");
   emitize(subs, "schedules");
+  emitize(subs, "driver");
+  emitize(subs, "parent");
 
   // subs.students = log; //subscribe to events (named 'x') with cb (log)
   // //another subscription won't override the previous one
@@ -63,6 +69,14 @@ var Data = (function () {
       drivers{
         id
         username
+      }
+      driver{
+        id
+        username
+      }
+      parent {
+        id
+        name
       }
       parents {
         id
@@ -135,6 +149,12 @@ var Data = (function () {
 
     drivers = response.drivers;
     subs.drivers({ drivers });
+
+    driver = response.driver;
+    subs.driver({ driver });
+
+    parent = response.parent;
+    subs.parent({ parent });
   };
 
   fetch();
@@ -149,7 +169,7 @@ var Data = (function () {
     async refetch() {
       fetch();
     },
-    getInstance: function () {
+    getInstance: function() {
       if (!instance) {
         instance = createInstance();
       }
@@ -166,6 +186,26 @@ var Data = (function () {
       logout(id, data) {
         return;
       }
+    },
+    driver: {
+      get() {
+        return driver;
+      },
+      subscribe(cb) {
+        subs.driver = cb;
+        return driver;
+      },
+      getOne(id) {}
+    },
+    parent: {
+      get() {
+        return parent;
+      },
+      subscribe(cb) {
+        subs.parent = cb;
+        return parent;
+      },
+      getOne(id) {}
     },
     students: {
       create: data =>
@@ -247,7 +287,7 @@ var Data = (function () {
         subs.students = cb;
         return students;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     parents: {
       list() {
@@ -257,7 +297,7 @@ var Data = (function () {
         subs.parents = cb;
         return parents;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     drivers: {
       create: data =>
@@ -336,7 +376,7 @@ var Data = (function () {
         subs.drivers = cb;
         return drivers;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     busses: {
       create: bus =>
@@ -409,7 +449,7 @@ var Data = (function () {
         subs.busses = cb;
         return busses;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     routes: {
       create: data =>
@@ -486,7 +526,7 @@ var Data = (function () {
         subs.routes = cb;
         return routes;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     schedules: {
       create: schedule =>
@@ -572,7 +612,7 @@ var Data = (function () {
         subs.schedules = cb;
         return schedules;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     events: {
       create: event =>
@@ -742,7 +782,7 @@ var Data = (function () {
       list() {
         return [];
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     complaints: {
       send(message) {
@@ -778,7 +818,7 @@ var Data = (function () {
       list() {
         return [];
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     communication: {
       sms: {
@@ -794,7 +834,7 @@ var Data = (function () {
         list() {
           return [];
         },
-        getOne(id) { }
+        getOne(id) {}
       },
       email: {
         create(id) {
@@ -809,7 +849,7 @@ var Data = (function () {
         list() {
           return [];
         },
-        getOne(id) { }
+        getOne(id) {}
       }
     }
   };
