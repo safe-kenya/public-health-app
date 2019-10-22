@@ -1,5 +1,5 @@
 import Geolocation from "react-native-geolocation-service";
-import { PermissionsAndroid } from "react-native";
+import { PermissionsAndroid, AsyncStorage } from "react-native";
 import { ToastAndroid } from "react-native";
 import emitize from "./emitize";
 import { query, mutate } from "./requests";
@@ -13,26 +13,7 @@ const routesData = [];
 const schedulesData = [];
 const parentData = [];
 
-export async function requestLocationPermission() {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: "Example App",
-        message: "Example App access to your location "
-      }
-    );
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can use the location");
-    } else {
-      console.log("location permission denied");
-    }
-  } catch (err) {
-    console.warn(err);
-  }
-}
-
-var Data = (function() {
+var Data = (async function() {
   var instance;
 
   // local variables to keep a cache of every entity
@@ -157,8 +138,12 @@ var Data = (function() {
     subs.parent({ parent });
   };
 
-  fetch();
-  requestLocationPermission();
+  if (await AsyncStorage.getItem("authorization")) fetch();
+
+  await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    PermissionsAndroid.PERMISSIONS.READ_SMS
+  ]);
 
   function createInstance() {
     var object = new Object("Instance here");

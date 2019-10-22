@@ -29,13 +29,14 @@ async function requestReadSmsPermission() {
         buttonPositive: "OK"
       }
     );
+
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       console.log("You can read sms");
     } else {
-      ToastAndroid.show("Read SMS perms denied", ToastAndroid.SHORT);
+      ToastAndroid.show("Read SMS perms denied " + granted, ToastAndroid.SHORT);
     }
   } catch (err) {
-    console.warn("sms err", { err });
+    console.warn("sms perms err", { err });
   }
 }
 
@@ -77,7 +78,7 @@ class LoginScreen extends React.Component {
       await AsyncStorage.setItem("authorization", token);
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 
-      this.props.navigation.navigate("AgentHome");
+      this.props.navigation.navigate("DriverHome");
 
       Data.refetch();
       return;
@@ -89,29 +90,48 @@ class LoginScreen extends React.Component {
 
   async componentDidMount() {
     const _this = this;
-    await requestReadSmsPermission();
-    ToastAndroid.show(`Listening to messages`, ToastAndroid.SHORT);
-    const subscription = SmsListener.addListener(async message => {
-      // ToastAndroid.show(message.body, ToastAndroid.SHORT);
+    await PermissionsAndroid.requestMultiple([
+      PermissionsAndroid.PERMISSIONS.READ_SMS
+    ]);
 
-      let verificationCodeRegex = /([\d]{5}) is your SmartKids login code. Don't reply to this message with your code./;
-
-      if (verificationCodeRegex.test(message.body)) {
-        let verificationCode = message.body.match(verificationCodeRegex)[1];
-
-        ToastAndroid.show(`Code is ${verificationCode}`, ToastAndroid.SHORT);
-
-        try {
-          _this.setState({ password: verificationCode });
-          this.setState({ validating: true });
-          await _this.verifyCode(verificationCode);
-          this.setState({ validating: false });
-        } catch (err) {
-          subscription.remove();
-          return;
-        }
+    const granted = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.READ_SMS,
+      {
+        title: "Smart kids needs to know your location",
+        message:
+          "So we can display it on your map and share it with he interested parties.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK"
       }
-    });
+    );
+
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      ToastAndroid.show(`Listening to messages`, ToastAndroid.SHORT);
+      const subscription = SmsListener.addListener(async message => {
+        ToastAndroid.show(message.body, ToastAndroid.SHORT);
+
+        let verificationCodeRegex = /([\d]{5}) is your SmartKids login code. Don't reply to this message with your code./;
+
+        if (verificationCodeRegex.test(message.body)) {
+          let verificationCode = message.body.match(verificationCodeRegex)[1];
+
+          ToastAndroid.show(`Code is ${verificationCode}`, ToastAndroid.SHORT);
+
+          try {
+            _this.setState({ password: verificationCode });
+            this.setState({ validating: true });
+            await _this.verifyCode(verificationCode);
+            this.setState({ validating: false });
+          } catch (err) {
+            subscription.remove();
+            return;
+          }
+        }
+      });
+    } else {
+      ToastAndroid.show(`No Reading Sms Permisions`, ToastAndroid.SHORT);
+    }
   }
 
   async login() {
@@ -132,11 +152,21 @@ class LoginScreen extends React.Component {
       );
       const res = await axios.post(`${API}/auth/login`, authData);
 
-      _this.setState({ error: null });
+      _this.setState({ error: null, loading: false });
 
       const {
-        data: { success }
+        data: { success, token, data }
       } = res;
+
+      if (token) {
+        const user = data.admin || data.driver || data.user;
+        await AsyncStorage.setItem("authorization", token);
+        await AsyncStorage.setItem("user", JSON.stringify(user));
+
+        this.props.navigation.navigate("DriverHome");
+
+        return Data.refetch();
+      }
 
       if (success === true) {
         ToastAndroid.show(
@@ -145,7 +175,7 @@ class LoginScreen extends React.Component {
         );
       }
 
-      if (__DEV__) {
+      if (__DEV__ && !password & !token) {
         setTimeout(() => {
           const tmpPass = "0000";
           _this.setState({ error: null, loading: true });

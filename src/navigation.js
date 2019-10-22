@@ -1,5 +1,5 @@
-import Login from "./activities/auth/parent";
-import driverLogin from "./activities/auth/driver";
+import ParentLogin from "./activities/auth/parent";
+import DriverLogin from "./activities/auth/driver";
 import ParentHome from "./activities/parent/home";
 import AgentHome from "./activities/agent/home";
 
@@ -20,13 +20,13 @@ const App = {
 
 const Auth = {
   ParentLogin: {
-    screen: Login,
+    screen: ParentLogin,
     navigationOptions: {
       header: null
     }
   },
   DriverLogin: {
-    screen: driverLogin,
+    screen: DriverLogin,
     navigationOptions: {
       header: null
     }
