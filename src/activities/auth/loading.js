@@ -8,6 +8,7 @@ import {
   ToastAndroid,
   Button
 } from "react-native";
+import Data from "../../services/data";
 
 class AuthLoading extends React.Component {
   state = {
@@ -19,6 +20,7 @@ class AuthLoading extends React.Component {
 
   // Fetch the token from storage then navigate to our appropriate place
   _bootstrapAsync = async () => {
+    const data = await Data;
     const authorization = await AsyncStorage.getItem("authorization");
     let user = await AsyncStorage.getItem("user");
     user = JSON.parse(user);
@@ -26,17 +28,10 @@ class AuthLoading extends React.Component {
     if (authorization) {
       this.setState({ user });
 
-      ToastAndroid.show(
-        authorization ? `Authorised` : `UnAuthorised`,
-        ToastAndroid.SHORT
-      );
+      data.refetch();
 
-      // ToastAndroid.show(JSON.stringify(user), ToastAndroid.LONG);
-
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
       this.props.navigation.navigate(
-        user.userType === "driver" ? "DriverHome" : "ParentHome"
+        user.userType == "driver" ? "DriverHome" : "ParentHome"
       );
     } else {
       this.props.navigation.navigate("DriverLogin");

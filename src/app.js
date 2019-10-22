@@ -11,42 +11,34 @@ import DriverLogin from "./activities/auth/driver";
 import ParentHome from "./activities/parent/home";
 import AgentHome from "./activities/agent/home";
 
-const AppStack = createStackNavigator({
-  ParentHome: {
-    screen: ParentHome,
-    navigationOptions: {
-      header: null
-    }
-  },
-  DriverHome: {
-    screen: AgentHome,
-    navigationOptions: {
-      header: null
-    }
-  }
-});
-
-const AuthStack = createStackNavigator({
-  ParentLogin: {
-    screen: ParentLogin,
-    navigationOptions: {
-      header: null
-    }
-  },
-  DriverLogin: {
-    screen: DriverLogin,
-    navigationOptions: {
-      header: null
-    }
-  }
-});
-
 export default createAppContainer(
   createSwitchNavigator(
     {
       Loading: AuthLoad,
-      App: AppStack,
-      Auth: AuthStack
+      ParentHome: {
+        screen: ParentHome,
+        navigationOptions: {
+          header: null
+        }
+      },
+      DriverHome: {
+        screen: AgentHome,
+        navigationOptions: {
+          header: null
+        }
+      },
+      ParentLogin: {
+        screen: ParentLogin,
+        navigationOptions: {
+          header: null
+        }
+      },
+      DriverLogin: {
+        screen: DriverLogin,
+        navigationOptions: {
+          header: null
+        }
+      }
     },
     {
       initialRouteName: "Loading"

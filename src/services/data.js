@@ -11,7 +11,7 @@ const driversData = [];
 const driverData = {};
 const routesData = [];
 const schedulesData = [];
-const parentData = [];
+const parentData = { students: [] };
 
 var Data = (async function() {
   var instance;
@@ -47,19 +47,11 @@ var Data = (async function() {
   // when the data store gets innitialized, fetch all data and store in cache
   const fetch = async () => {
     const response = await query(`{
-      drivers{
-        id
-        username
-      }
       driver{
         id
         username
       }
       parent {
-        id
-        name
-      }
-      parents {
         id
         name
         gender
@@ -122,20 +114,30 @@ var Data = (async function() {
       }
     }`);
 
-    schedules = response.schedules;
-    subs.schedules({ schedules });
+    if (response.schedules) {
+      schedules = response.schedules;
+      subs.schedules({ schedules });
+    }
 
-    parents = response.parents;
-    subs.parents({ parents });
+    if (response.parents) {
+      parents = response.parents;
+      subs.parents({ parents });
+    }
 
-    drivers = response.drivers;
-    subs.drivers({ drivers });
+    if (response.drivers) {
+      drivers = response.drivers;
+      subs.drivers({ drivers });
+    }
 
-    driver = response.driver;
-    subs.driver({ driver });
+    if (response.driver) {
+      driver = response.driver;
+      subs.driver({ driver });
+    }
 
-    parent = response.parent;
-    subs.parent({ parent });
+    if (response.parent) {
+      parent = response.parent;
+      subs.parent({ parent });
+    }
   };
 
   if (await AsyncStorage.getItem("authorization")) fetch();
@@ -151,26 +153,13 @@ var Data = (async function() {
   }
 
   return {
-    async refetch() {
-      fetch();
-    },
+    refetch: () => fetch(),
     getInstance: function() {
       if (!instance) {
         instance = createInstance();
       }
 
       return instance;
-    },
-    auth: {
-      login(id) {
-        return {};
-      },
-      getUser(id) {
-        return {};
-      },
-      logout(id, data) {
-        return;
-      }
     },
     driver: {
       get() {
@@ -189,327 +178,6 @@ var Data = (async function() {
       subscribe(cb) {
         subs.parent = cb;
         return parent;
-      },
-      getOne(id) {}
-    },
-    students: {
-      create: data =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `
-          mutation ($Istudent: Istudent!) {
-            students {
-              create(student: $Istudent) {
-                id
-              }
-            }
-          }`,
-            {
-              Istudent: data
-            }
-          );
-
-          data.id = id;
-
-          data.parent = parents.filter(p => p.id === data.parent)[0].name;
-          data.route = routes.filter(p => p.id === data.route)[0].name;
-
-          students = [...students, data];
-          subs.students({ students });
-          resolve();
-        }),
-      update: data =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `
-          mutation ($student: Ustudent!) {
-            students {
-              update(student: $student) {
-                id
-              }
-            }
-          } `,
-            {
-              student: data
-            }
-          );
-
-          data.id = id;
-
-          const subtract = students.filter(({ id }) => id !== data.id);
-          students = [data, ...subtract];
-          subs.students({ students });
-          resolve();
-        }),
-      delete: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `
-          mutation ($Istudent: Ustudent!) {
-            students {
-              archive(student: $Istudent) {
-                id
-              }
-            }
-          }  `,
-            {
-              Istudent: {
-                id: data.id
-              }
-            }
-          );
-
-          const subtract = students.filter(({ id }) => id !== data.id);
-          students = [...subtract];
-          subs.students({ students });
-          resolve();
-        }),
-      list() {
-        return students;
-      },
-      subscribe(cb) {
-        // listen for even change on the students observables
-        subs.students = cb;
-        return students;
-      },
-      getOne(id) {}
-    },
-    parents: {
-      list() {
-        return parents;
-      },
-      subscribe(cb) {
-        subs.parents = cb;
-        return parents;
-      },
-      getOne(id) {}
-    },
-    drivers: {
-      create: data =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `
-            mutation ($Idriver: Idriver!) {
-              drivers {
-                create(driver: $Idriver) {
-                  id
-                }
-              }
-            }`,
-            {
-              Idriver: data
-            }
-          );
-
-          data.id = id;
-
-          drivers = [...drivers, data];
-          subs.drivers({ drivers });
-          resolve();
-        }),
-      update: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `
-          mutation ($driver: Udriver!) {
-            drivers {
-              update(driver: $driver) {
-                id
-              }
-            }
-          } 
-          `,
-            {
-              driver: data
-            }
-          );
-
-          const subtract = drivers.filter(({ id }) => id !== data.id);
-          drivers = [data, ...subtract];
-          subs.drivers({ drivers });
-          resolve();
-        }),
-      delete: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `
-          mutation ($Idriver: Udriver!) {
-            drivers {
-              archive(driver: $Idriver) {
-                id
-              }
-            }
-          } 
-          `,
-            {
-              Idriver: {
-                id: data.id
-              }
-            }
-          );
-
-          const subtract = drivers.filter(({ id }) => id !== data.id);
-          drivers = [...subtract];
-          subs.drivers({ drivers });
-          resolve();
-        }),
-      list() {
-        return drivers;
-      },
-      subscribe(cb) {
-        // listen for even change on the students observables
-        subs.drivers = cb;
-        return drivers;
-      },
-      getOne(id) {}
-    },
-    busses: {
-      create: bus =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `mutation ($bus: Ibus!) {
-            buses {
-              create(bus: $bus) {
-                id
-              }
-            }
-          }`,
-            {
-              bus
-            }
-          );
-
-          bus.id = id;
-          busses = [...busses, bus];
-          subs.busses({ busses });
-          resolve();
-        }),
-      update: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `mutation ($bus: Ubus!) {
-            buses {
-              update(bus: $bus) {
-                id
-              }
-            }
-          }`,
-            {
-              bus: data
-            }
-          );
-
-          const subtract = busses.filter(({ id }) => id !== data.id);
-          busses = [data, ...subtract];
-          subs.busses({ busses });
-          resolve();
-        }),
-      delete: bus =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `mutation ($Ibus: Ubus!) {
-            buses {
-              archive(bus: $Ibus) {
-                id
-              }
-            }
-          }  `,
-            {
-              Ibus: {
-                id: bus.id
-              }
-            }
-          );
-
-          const subtract = busses.filter(({ id }) => id !== bus.id);
-          busses = [...subtract];
-          subs.busses({ busses });
-          resolve();
-        }),
-      list() {
-        return busses;
-      },
-      subscribe(cb) {
-        // listen for even change on the students observables
-        subs.busses = cb;
-        return busses;
-      },
-      getOne(id) {}
-    },
-    routes: {
-      create: data =>
-        new Promise(async (resolve, reject) => {
-          const { id } = await mutate(
-            `
-            mutation ($Iroute: Iroute!) {
-              routes {
-                create(route: $Iroute) {
-                  id
-                }
-              }
-            }`,
-            {
-              Iroute: data
-            }
-          );
-
-          data.id = id;
-          routes = [...routes, data];
-          subs.routes({ routes });
-          resolve();
-        }),
-      update: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `mutation ($route: Uroute!) {
-            routes {
-              update(route: $route) {
-                id
-              }
-            }
-          } `,
-            {
-              route: {
-                id: data.id,
-                name: data.name
-              }
-            }
-          );
-
-          const subtract = routes.filter(({ id }) => id !== data.id);
-          routes = [data, ...subtract];
-          subs.routes({ routes });
-          resolve();
-        }),
-      delete: data =>
-        new Promise(async (resolve, reject) => {
-          await mutate(
-            `mutation ($Iroute: Uroute!) {
-            routes {
-              archive(route: $Iroute) {
-                id
-              }
-            }
-          }`,
-            {
-              Iroute: {
-                id: data.id
-              }
-            }
-          );
-
-          const subtract = routes.filter(({ id }) => id !== data.id);
-          routes = [...subtract];
-          subs.routes({ routes });
-          resolve();
-        }),
-      list() {
-        return routes;
-      },
-      subscribe(cb) {
-        // listen for even change on the students observables
-        subs.routes = cb;
-        return routes;
       },
       getOne(id) {}
     },
@@ -804,38 +472,6 @@ var Data = (async function() {
         return [];
       },
       getOne(id) {}
-    },
-    communication: {
-      sms: {
-        create(id) {
-          return {};
-        },
-        update(id, data) {
-          return;
-        },
-        delete(id) {
-          return;
-        },
-        list() {
-          return [];
-        },
-        getOne(id) {}
-      },
-      email: {
-        create(id) {
-          return {};
-        },
-        update(id, data) {
-          return;
-        },
-        delete(id) {
-          return;
-        },
-        list() {
-          return [];
-        },
-        getOne(id) {}
-      }
     }
   };
 })();

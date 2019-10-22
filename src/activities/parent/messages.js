@@ -1,5 +1,6 @@
 import React from "react";
-import Data from "../../services/data";
+import DataService from "../../services/data";
+let Data;
 
 import { List, Checkbox } from "react-native-paper";
 import {
@@ -23,14 +24,18 @@ class Screen extends React.Component {
     await Data.refetch();
     this.setState({ refreshing: false });
   }
-  componentDidMount() {
-    const [parent = { students: [] }] = Data.parents.list();
+  async componentDidMount() {
+    let Data = await DataService;
+    const parent = Data.parent.get();
 
-    this.setState({ parent });
+    console.log({ parent });
+    if (parent) {
+      this.setState({ parent });
 
-    Data.parents.subscribe(parent => {
-      this.setState(parent);
-    });
+      Data.parents.subscribe(parent => {
+        this.setState(parent);
+      });
+    }
   }
   render() {
     return (

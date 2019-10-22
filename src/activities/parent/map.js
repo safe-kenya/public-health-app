@@ -33,9 +33,7 @@ class Screen extends React.Component {
   };
 
   async componentDidMount() {
-    const parents = Data.parents.list();
-
-    const parent = parents[0];
+    const parent = Data.parent.get();
 
     const tempMmarkers = [];
     parent.students.map(student =>

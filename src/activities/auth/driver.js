@@ -14,7 +14,8 @@ import { ToastAndroid } from "react-native";
 import { API } from "../../services/requests";
 import SmsListener from "react-native-android-sms-listener";
 import Spinner from "react-native-spinkit";
-import Data from "../../services/data";
+import DataService from "../../services/data";
+let Data;
 // import imageLogo from "../assets/images/logo.png";
 
 async function requestReadSmsPermission() {
@@ -89,6 +90,7 @@ class LoginScreen extends React.Component {
   }
 
   async componentDidMount() {
+    Data = await DataService;
     const _this = this;
     await PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.READ_SMS
@@ -155,17 +157,21 @@ class LoginScreen extends React.Component {
       _this.setState({ error: null, loading: false });
 
       const {
-        data: { success, token, data }
+        data: { success, token, data: userData }
       } = res;
 
+      console.log({ token });
+
       if (token) {
-        const user = data.admin || data.driver || data.user;
+        ToastAndroid.show(`Code Verification Successfull`, ToastAndroid.SHORT);
+
         await AsyncStorage.setItem("authorization", token);
-        await AsyncStorage.setItem("user", JSON.stringify(user));
+        await AsyncStorage.setItem("user", JSON.stringify(userData));
 
-        this.props.navigation.navigate("DriverHome");
+        this.props.navigation.navigate("Loading");
 
-        return Data.refetch();
+        Data.refetch();
+        return;
       }
 
       if (success === true) {
@@ -187,12 +193,13 @@ class LoginScreen extends React.Component {
 
       // check if otp sending was a success and if it was, show
     } catch (err) {
-      console.warn("login error", err.response.data);
-      if (err.response.data.message)
+      if (err.response.data.message) {
+        console.warn("login error", err.response.data);
         return _this.setState({
           error: err.response.data.message,
           loading: false
         });
+      }
 
       _this.setState({ error: err.response.data, loading: false });
     }

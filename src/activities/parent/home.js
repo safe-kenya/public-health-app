@@ -12,7 +12,8 @@ import { Appbar } from "react-native-paper";
 import { material } from "react-native-typography";
 
 import { TabView, TabBar, SceneMap } from "react-native-tab-view";
-import Data from "../../services/data";
+import DataService from "../../services/data";
+let Data;
 
 import messages from "./messages";
 import map from "./map";
@@ -46,8 +47,9 @@ class Screen extends React.Component {
     ]
   };
 
-  componentDidMount() {
-    const [parent = { students: [] }] = Data.parents.list();
+  async componentDidMount() {
+    let Data = await DataService;
+    const parent = Data.parent.get();
 
     this.setState({ parent });
 

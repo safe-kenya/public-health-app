@@ -23,7 +23,8 @@ import { Dropdown } from "react-native-material-dropdown";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import call from "react-native-phone-call";
 
-import Data from "../../services/data";
+import DataService from "../../services/data";
+let Data;
 
 class Screen extends React.Component {
   state = {
@@ -272,7 +273,8 @@ class Screen extends React.Component {
     this.setState({ refreshing: false });
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    Data = await DataService;
     const schedules = Data.schedules.list();
     this.setState({ schedules });
 

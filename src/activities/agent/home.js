@@ -14,7 +14,7 @@ import { TabView, TabBar, SceneMap } from "react-native-tab-view";
 
 import dropOfList from "./dropOfList";
 import map from "./map";
-import Data from "../../services/data";
+import DataService from "../../services/data";
 
 const renderTabBar = props => (
   <TabBar
@@ -37,7 +37,8 @@ class Screen extends React.Component {
     driver: { username: "" }
   };
 
-  componentDidMount() {
+  async componentDidMount() {
+    let Data = await DataService;
     const driver = Data.driver.get();
     this.setState({ driver });
 
