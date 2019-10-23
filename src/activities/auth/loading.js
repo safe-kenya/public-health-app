@@ -39,18 +39,34 @@ class AuthLoading extends React.Component {
   };
   render() {
     return (
-      <View>
+      <View
+        style={[
+          {
+            flex: 1,
+            justifyContent: "center"
+          },
+          {
+            flexDirection: "row",
+            justifyContent: "space-around",
+            padding: 10
+          }
+        ]}
+      >
         <ActivityIndicator />
         <StatusBar barStyle="default" />
-        <Text>{JSON.stringify(this.state.user, null, "\t")}</Text>
-        <Button
-          title="clear"
-          style={{ margin: 30 }}
-          onPress={() => {
-            AsyncStorage.clear();
-            this.props.navigation.navigate("DriverLogin");
-          }}
-        />
+        {__DEV__ ? (
+          <View>
+            <Text>{JSON.stringify(this.state.user, null, "\t")}</Text>
+            <Button
+              title="clear"
+              style={{ margin: 30 }}
+              onPress={() => {
+                AsyncStorage.clear();
+                this.props.navigation.navigate("DriverLogin");
+              }}
+            />
+          </View>
+        ) : null}
       </View>
     );
   }
