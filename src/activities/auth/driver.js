@@ -181,7 +181,7 @@ class LoginScreen extends React.Component {
         );
       }
 
-      if (__DEV__ && !password & !token) {
+      if (__DEV__ && !password && !token) {
         setTimeout(() => {
           const tmpPass = "0000";
           _this.setState({ error: null, loading: true });

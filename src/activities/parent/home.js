@@ -5,7 +5,8 @@ import {
   StyleSheet,
   View,
   Dimensions,
-  AsyncStorage
+  AsyncStorage,
+  Alert
 } from "react-native";
 
 import { Appbar } from "react-native-paper";
@@ -53,7 +54,7 @@ class Screen extends React.Component {
 
     this.setState({ parent });
 
-    Data.parents.subscribe(parent => {
+    Data.parent.subscribe(parent => {
       this.setState(parent);
     });
   }
@@ -69,8 +70,25 @@ class Screen extends React.Component {
           <Appbar.Action
             icon="power-settings-new"
             onPress={() => {
-              AsyncStorage.clear();
-              this.props.navigation.navigate("ParentLogin");
+              Alert.alert(
+                "Log Out?",
+                `Are you sure you remove all the data on the app?`,
+                [
+                  {
+                    text: "Cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel"
+                  },
+                  {
+                    text: "OK",
+                    onPress: async () => {
+                      AsyncStorage.clear();
+                      this.props.navigation.navigate("Loading");
+                    }
+                  }
+                ],
+                { cancelable: false }
+              );
             }}
           />
         </Appbar.Header>

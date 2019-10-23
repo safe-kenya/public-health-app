@@ -10,7 +10,7 @@ import {
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps"; // remove PROVIDER_GOOGLE import if not using Google Maps
 import Geolocation from "react-native-geolocation-service";
 import { material } from "react-native-typography";
-import Data from "../../services/data";
+import DataService from "../../services/data";
 
 const styles = StyleSheet.create({
   container: {
@@ -33,6 +33,7 @@ class Screen extends React.Component {
   };
 
   async componentDidMount() {
+    let Data = await DataService;
     const parent = Data.parent.get();
 
     const tempMmarkers = [];
@@ -49,18 +50,20 @@ class Screen extends React.Component {
     );
 
     this.setState({ parent, markers: tempMmarkers }, () => {
-      const { latitude, longitude } = this.state.markers[0];
-      setTimeout(() => {
-        mapRef.animateToRegion(
-          {
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01
-          },
-          2000
-        );
-      }, 1000);
+      if (this.state.markers[0]) {
+        const { latitude, longitude } = this.state.markers[0];
+        setTimeout(() => {
+          mapRef.animateToRegion(
+            {
+              latitude,
+              longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01
+            },
+            2000
+          );
+        }, 1000);
+      }
     });
   }
 

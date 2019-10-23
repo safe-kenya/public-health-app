@@ -1,28 +1,41 @@
 import React from "react";
 import { GiftedChat } from "react-native-gifted-chat";
-import Data from "../../services/data";
+import DataService from "../../services/data";
+let Data;
+import { AsyncStorage } from "react-native";
+import { AsyncSubject } from "rxjs";
 
 class Screen extends React.Component {
   state = {
-    messages: []
+    parent: {},
+    messages: [],
+    defaultMessage: {
+      _id: 1,
+      text:
+        "Hello gardian, can you please explain to us what problem you want to report?",
+      createdAt: new Date(),
+      user: {
+        _id: 2,
+        name: "React Native",
+        avatar: "https://placeimg.com/140/140/any"
+      }
+    }
   };
 
-  componentWillMount() {
+  async componentWillMount() {
+    Data = await DataService;
+    const parent = Data.parent.get();
+    const messagesStored = await AsyncStorage.getItem("messages");
+
     this.setState({
-      messages: [
-        {
-          _id: 1,
-          text:
-            "Hello gardian, can you please explain to us what problem you want to report?",
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: "React Native",
-            avatar: "https://placeimg.com/140/140/any"
-          }
-        }
-      ]
+      parent
     });
+
+    if (messagesStored) {
+      this.setState({
+        messages: JSON.parse(messagesStored).messages
+      });
+    }
   }
 
   onSend(messages = []) {
@@ -31,6 +44,12 @@ class Screen extends React.Component {
         messages: GiftedChat.append(previousState.messages, messages)
       }),
       () => {
+        AsyncStorage.setItem(
+          "messages",
+          JSON.stringify({
+            messages: this.state.messages
+          })
+        );
         Data.complaints.send(messages);
       }
     );
@@ -39,10 +58,10 @@ class Screen extends React.Component {
   render() {
     return (
       <GiftedChat
-        messages={this.state.messages}
+        messages={[...this.state.messages, this.state.defaultMessage]}
         onSend={messages => this.onSend(messages)}
         user={{
-          _id: 1
+          _id: this.state.parent.id || 1
         }}
       />
     );
