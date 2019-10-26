@@ -181,15 +181,15 @@ class LoginScreen extends React.Component {
         );
       }
 
-      // if (__DEV__ && !password) {
-      // setTimeout(() => {
-      const tmpPass = "0000";
-      _this.setState({ error: null, loading: true });
-      _this.verifyCode(tmpPass);
-      _this.setState({ error: null, loading: false });
-      _this.setState({ password: tmpPass });
-      // }, 3000);
-      // }
+      if (__DEV__ && !password) {
+        setTimeout(() => {
+          const tmpPass = "0000";
+          _this.setState({ error: null, loading: true });
+          _this.verifyCode(tmpPass);
+          _this.setState({ error: null, loading: false });
+          _this.setState({ password: tmpPass });
+        }, 3000);
+      }
 
       // check if otp sending was a success and if it was, show
     } catch (err) {

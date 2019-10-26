@@ -78,7 +78,6 @@ class Screen extends React.Component {
             }}
           />
         </Appbar.Header>
-
         <TabView
           navigationState={this.state}
           renderScene={SceneMap({
@@ -91,7 +90,8 @@ class Screen extends React.Component {
           onIndexChange={index => this.setState({ index })}
           initialLayout={{ width: Dimensions.get("window").width }}
           indicatorStyle={{ backgroundColor: "white" }}
-        />
+        />{" "}
+        m
       </>
     );
   }

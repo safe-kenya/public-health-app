@@ -32,7 +32,7 @@ class Screen extends React.Component {
     if (parent) {
       this.setState({ parent });
 
-      Data.parents.subscribe(parent => {
+      Data.parent.subscribe(parent => {
         this.setState(parent);
       });
     }
