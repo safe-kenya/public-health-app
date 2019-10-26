@@ -13,7 +13,7 @@ const routesData = [];
 const schedulesData = [];
 const parentData = { students: [] };
 
-var Data = (async function() {
+var Data = (async function () {
   var instance;
 
   // local variables to keep a cache of every entity
@@ -154,7 +154,7 @@ var Data = (async function() {
 
   return {
     refetch: () => fetch(),
-    getInstance: function() {
+    getInstance: function () {
       if (!instance) {
         instance = createInstance();
       }
@@ -169,7 +169,7 @@ var Data = (async function() {
         subs.driver = cb;
         return driver;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     parent: {
       get() {
@@ -179,7 +179,7 @@ var Data = (async function() {
         subs.parent = cb;
         return parent;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     schedules: {
       create: schedule =>
@@ -265,7 +265,7 @@ var Data = (async function() {
         subs.schedules = cb;
         return schedules;
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     events: {
       create: event =>
@@ -390,18 +390,24 @@ var Data = (async function() {
 
           await mutate(
             `
-            mutation ($Itrip: Itrip!) {
+            mutation ($trip: Utrip!) {
               trips {
-                create(trip: $Itrip) {
+                update(trip: $trip) {
                   id
                 }
               }
-            }       
+            }                  
         `,
             {
               Itrip: {
+                id,
                 completedAt: new Date().toISOString(),
                 schedule: id
+
+                id: sharedInfo.tripId,
+                startedAt: new Date().toISOString(),
+                completedAt: new Date().toISOString(),
+                schedule: sharedInfo.scheduleId
               }
             }
           );
@@ -435,7 +441,7 @@ var Data = (async function() {
       list() {
         return [];
       },
-      getOne(id) {}
+      getOne(id) { }
     },
     complaints: {
       send(message) {
@@ -471,7 +477,7 @@ var Data = (async function() {
       list() {
         return [];
       },
-      getOne(id) {}
+      getOne(id) { }
     }
   };
 })();
