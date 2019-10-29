@@ -86,12 +86,13 @@ class Screen extends React.Component {
           })}
           renderTabBar={renderTabBar}
           swipeEnabled={true}
-          lazy={true}
+          lazy={false}
           onIndexChange={index => this.setState({ index })}
           initialLayout={{ width: Dimensions.get("window").width }}
           indicatorStyle={{ backgroundColor: "white" }}
-        />{" "}
-        m
+          style={{ backgroundColor: "pink" }}
+          activeColor="red"
+        />
       </>
     );
   }

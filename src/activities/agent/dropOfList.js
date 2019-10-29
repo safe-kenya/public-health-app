@@ -10,7 +10,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   ToastAndroid,
-  Alert
+  Alert,
+  AsyncStorage
 } from "react-native";
 import {
   Appbar,
@@ -24,6 +25,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import call from "react-native-phone-call";
 
 import DataService from "../../services/data";
+import { AsyncSubject } from "rxjs";
 let Data;
 
 class Screen extends React.Component {
@@ -37,7 +39,8 @@ class Screen extends React.Component {
     tripId: null,
     tripStarted: false,
     refreshing: false,
-    tripSelected: null
+    tripSelected: null,
+    selectedSchedule: {}
   };
 
   tripSelected(trip) {
@@ -53,18 +56,25 @@ class Screen extends React.Component {
         () => {
           // if route is missing, for whatever reason
           if (selectedSchedule.route)
-            this.setState({
-              selectedSchedule,
-              students: selectedSchedule.route.students
-            });
+            this.setState(
+              {
+                selectedSchedule,
+                students: selectedSchedule.route.students
+              },
+              () =>
+                AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+            );
         }
       );
     } else {
       if (selectedSchedule.route)
-        this.setState({
-          selectedSchedule,
-          students: selectedSchedule.route.students
-        });
+        this.setState(
+          {
+            selectedSchedule,
+            students: selectedSchedule.route.students
+          },
+          () => AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+        );
     }
   }
 
@@ -85,7 +95,9 @@ class Screen extends React.Component {
               const tripId = await Data.trips.start(
                 this.state.selectedSchedule.id
               );
-              this.setState({ tripStarted: true, tripId });
+              this.setState({ tripStarted: true, tripId }, () =>
+                AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+              );
             }
           }
         ],
@@ -108,7 +120,9 @@ class Screen extends React.Component {
             const tripId = await Data.trips.start(
               this.state.selectedSchedule.id
             );
-            this.setState({ tripStarted: true, tripId });
+            this.setState({ tripStarted: true, tripId }, () =>
+              AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+            );
           }
         }
       ],
@@ -128,12 +142,15 @@ class Screen extends React.Component {
   }
 
   async overideStudent(student) {
-    this.setState({
-      [this.state.selectedSchedule.id]: {
-        ...this.state[this.state.selectedSchedule.id],
-        [student.id]: "indeterminate"
-      }
-    });
+    this.setState(
+      {
+        [this.state.selectedSchedule.id]: {
+          ...this.state[this.state.selectedSchedule.id],
+          [student.id]: "indeterminate"
+        }
+      },
+      () => AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+    );
 
     Data.events.create({
       student: student.id,
@@ -144,15 +161,18 @@ class Screen extends React.Component {
   }
 
   async selectStudent(student) {
-    this.setState({
-      [this.state.selectedSchedule.id]: {
-        ...this.state[this.state.selectedSchedule.id],
-        [student.id]:
-          this.state[this.state.selectedSchedule.id][student.id] === "checked"
-            ? "unchecked"
-            : "checked"
-      }
-    });
+    this.setState(
+      {
+        [this.state.selectedSchedule.id]: {
+          ...this.state[this.state.selectedSchedule.id],
+          [student.id]:
+            this.state[this.state.selectedSchedule.id][student.id] === "checked"
+              ? "unchecked"
+              : "checked"
+        }
+      },
+      () => AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+    );
 
     Data.events.create({
       student: student.id,
@@ -163,12 +183,15 @@ class Screen extends React.Component {
   }
 
   async cancelPickup(student) {
-    this.setState({
-      [this.state.selectedSchedule.id]: {
-        ...this.state[this.state.selectedSchedule.id],
-        [student.id]: "indeterminate"
-      }
-    });
+    this.setState(
+      {
+        [this.state.selectedSchedule.id]: {
+          ...this.state[this.state.selectedSchedule.id],
+          [student.id]: "indeterminate"
+        }
+      },
+      () => AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+    );
 
     Data.events.create({
       student: student.id,
@@ -199,7 +222,7 @@ class Screen extends React.Component {
         [
           {
             text: "Overide students as off",
-            onPress: () => {
+            onPress: async () => {
               // overide here
               const inCompletedStudentsList = this.state.students.filter(
                 student => {
@@ -215,9 +238,15 @@ class Screen extends React.Component {
                 this.overideStudent(student)
               );
 
-              Data.trips.finish(this.state.selectedSchedule.id);
+              this.setState({ finishing: true });
+              await Data.trips.finish(this.state.tripId);
+              this.setState({ tripStarted: false, finishing: false });
 
-              this.setState({ inCompletedStudentsList, tripStarted: false });
+              this.setState(
+                { inCompletedStudentsList, tripStarted: false },
+                () =>
+                  AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+              );
             },
             style: "cancel"
           },
@@ -229,8 +258,22 @@ class Screen extends React.Component {
         { cancelable: false }
       );
 
-    Data.trips.finish(this.state.selectedSchedule.id);
-    this.setState({ tripStarted: false });
+    Alert.alert("Finish Trip?", `Record trip as now complete, `, [
+      {
+        text: "Cancel",
+        onPress: () => {}
+      },
+      {
+        text: "OK, Finish",
+        onPress: async () => {
+          this.setState({ finishing: true });
+          await Data.trips.finish(this.state.tripId);
+          this.setState({ tripStarted: false, finishing: true }, () =>
+            AsyncStorage.setItem("tripsState", JSON.stringify(this.state))
+          );
+        }
+      }
+    ]);
   }
 
   async cancelTrip() {
@@ -281,12 +324,25 @@ class Screen extends React.Component {
     Data.schedules.subscribe(schedule => {
       this.setState(schedule);
     });
+
+    // console.log(AsyncStorage.getItem("tripsState"));
+    if (await AsyncStorage.getItem("tripsState")) {
+      this.setState(JSON.parse(await AsyncStorage.getItem("tripsState")));
+    }
   }
 
   render() {
+    AsyncStorage.getItem("tripsState").then(res => {
+      console.log({
+        state: this.state,
+        storage: JSON.parse(res)
+      });
+    });
+
     return (
       <>
         <ScrollView
+          style={{ backgroundColor: "white" }}
           refreshControl={
             <RefreshControl
               refreshing={this.state.refreshing}
@@ -313,6 +369,7 @@ class Screen extends React.Component {
                   <Dropdown
                     disabled={this.state.tripStarted}
                     label="Select Trip"
+                    value={this.state.selectedSchedule.id}
                     data={this.state.schedules.map(schedule => {
                       return {
                         label: schedule.name,
@@ -328,6 +385,9 @@ class Screen extends React.Component {
                   <View style={{ width: 96, marginLeft: 8, marginTop: 25 }}>
                     <Button
                       mode="contained"
+                      color="blue"
+                      loading={this.state.finishing}
+                      disabled={this.state.finishing}
                       onPress={() => this.completeTrip()}
                     >
                       FINISH

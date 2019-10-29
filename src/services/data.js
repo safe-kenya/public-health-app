@@ -13,7 +13,7 @@ const routesData = [];
 const schedulesData = [];
 const parentData = { students: [] };
 
-var Data = (async function () {
+var Data = (async function() {
   var instance;
 
   // local variables to keep a cache of every entity
@@ -154,7 +154,7 @@ var Data = (async function () {
 
   return {
     refetch: () => fetch(),
-    getInstance: function () {
+    getInstance: function() {
       if (!instance) {
         instance = createInstance();
       }
@@ -169,7 +169,7 @@ var Data = (async function () {
         subs.driver = cb;
         return driver;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     parent: {
       get() {
@@ -179,7 +179,7 @@ var Data = (async function () {
         subs.parent = cb;
         return parent;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     schedules: {
       create: schedule =>
@@ -265,7 +265,7 @@ var Data = (async function () {
         subs.schedules = cb;
         return schedules;
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     events: {
       create: event =>
@@ -384,11 +384,8 @@ var Data = (async function () {
         });
       },
       finish(id) {
-        new Promise(async (resolve, reject) => {
-          Geolocation.clearWatch(locationWatchId);
-          clearInterval.clearWatch(manualWatchId);
-
-          await mutate(
+        return new Promise(async (resolve, reject) => {
+          const res = await mutate(
             `
             mutation ($trip: Utrip!) {
               trips {
@@ -399,24 +396,20 @@ var Data = (async function () {
             }                  
         `,
             {
-              Itrip: {
+              trip: {
                 id,
-                completedAt: new Date().toISOString(),
-                schedule: id
-
-                id: sharedInfo.tripId,
-                startedAt: new Date().toISOString(),
-                completedAt: new Date().toISOString(),
-                schedule: sharedInfo.scheduleId
+                completedAt: new Date().toISOString()
               }
             }
           );
 
+          Geolocation.clearWatch(locationWatchId);
+          clearInterval(manualWatchId);
           resolve();
         });
       },
       cancel(id) {
-        new Promise(async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
           await mutate(
             `
             mutation ($Itrip: Itrip!) {
@@ -430,7 +423,7 @@ var Data = (async function () {
             {
               Itrip: {
                 isCancelled: true,
-                schedule: id
+                id
               }
             }
           );
@@ -441,7 +434,7 @@ var Data = (async function () {
       list() {
         return [];
       },
-      getOne(id) { }
+      getOne(id) {}
     },
     complaints: {
       send(message) {
@@ -477,7 +470,7 @@ var Data = (async function () {
       list() {
         return [];
       },
-      getOne(id) { }
+      getOne(id) {}
     }
   };
 })();

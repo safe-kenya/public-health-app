@@ -7,6 +7,7 @@ import com.facebook.react.PackageList;
 import com.facebook.hermes.reactexecutor.HermesExecutorFactory;
 import com.facebook.react.bridge.JavaScriptExecutorFactory;
 import com.facebook.react.ReactApplication;
+import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.react.rnspinkit.RNSpinkitPackage;
 import com.centaurwarchief.smslistener.SmsListenerPackage;
 import com.agontuk.RNFusedLocation.RNFusedLocationPackage;

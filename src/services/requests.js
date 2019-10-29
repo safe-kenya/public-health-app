@@ -5,6 +5,7 @@ let API;
 
 if (__DEV__) {
   API = `http://10.0.3.2:4000`;
+  // API = `https://development-smartkids.herokuapp.com`;
 } else {
   API = `https://development-smartkids.herokuapp.com`;
 }

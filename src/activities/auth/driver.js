@@ -243,39 +243,45 @@ class LoginScreen extends React.Component {
             </Text>
           )}
 
-          {!this.state.loading ? (
-            <>
-              <Button
-                style={{ "padding-top": 20 }}
-                loading={this.state.loading}
-                disabled={
-                  (!this.state.password && !this.state.user) ||
-                  this.state.loading ||
-                  this.state.validating
-                }
-                mode="contained"
-                onPress={() => this.login()}
-              >
-                {this.state.password ? "Login" : "Send Login Code"}
-              </Button>
-              <View style={{ alignItems: "center" }}>
-                <Text>{`or`}</Text>
-                <Text
-                  style={{ color: "blue" }}
-                  onPress={() => this.props.navigation.navigate("ParentLogin")}
-                >{`Login as a parent`}</Text>
-              </View>
-            </>
-          ) : null}
+          <Button
+            style={{ "padding-top": 10 }}
+            loading={this.state.loading}
+            disabled={
+              (!this.state.password && !this.state.user) ||
+              this.state.loading ||
+              this.state.validating
+            }
+            mode="contained"
+            onPress={() => this.login()}
+          >
+            {this.state.password ? "Login" : "Send Login Code"}
+          </Button>
         </View>
-        {this.state.loading ? (
-          <Spinner
-            style={{ marginBottom: 100 }}
-            isVisible={true}
-            type={"Circle"}
-            color={"black"}
-          />
-        ) : null}
+
+        {/* {!this.state.loading ? (
+          <View>
+            <Button
+              style={{ "padding-top": 0 }}
+              loading={this.state.loading}
+              disabled={
+                (!this.state.password && !this.state.user) ||
+                this.state.loading ||
+                this.state.validating
+              }
+              mode="contained"
+              onPress={() => this.login()}
+            >
+              {this.state.password ? "Login" : "Send Login Code"}
+            </Button>
+            <View style={{ alignItems: "center" }}>
+              <Text>{`or`}</Text>
+              <Text
+                style={{ color: "blue" }}
+                onPress={() => this.props.navigation.navigate("ParentLogin")}
+              >{`Login as a parent`}</Text>
+            </View>
+          </View>
+        ) : null} */}
       </View>
     );
   }
