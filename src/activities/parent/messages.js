@@ -20,15 +20,10 @@ class Screen extends React.Component {
     }
   };
 
-  async onRefresh() {
-    await Data.refetch();
-    this.setState({ refreshing: false });
-  }
   async componentDidMount() {
     let Data = await DataService;
     const parent = Data.parent.get();
 
-    console.log({ parent });
     if (parent) {
       this.setState({ parent });
 
@@ -37,6 +32,14 @@ class Screen extends React.Component {
       });
     }
   }
+  async onRefresh() {
+    let Data = await DataService;
+    console.log(Data);
+    const data = await Data.refetch();
+    console.log(data);
+    this.setState({ refreshing: false });
+  }
+
   render() {
     return (
       <ScrollView

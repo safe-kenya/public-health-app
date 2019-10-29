@@ -12,11 +12,11 @@ class Screen extends React.Component {
     defaultMessage: {
       _id: 1,
       text:
-        "Hello gardian, can you please explain to us what problem you want to report?",
+        "Hello guardian, can you please explain to us what problem you want to report?",
       createdAt: new Date(),
       user: {
         _id: 2,
-        name: "React Native",
+        name: "Guardian",
         avatar: "https://placeimg.com/140/140/any"
       }
     }

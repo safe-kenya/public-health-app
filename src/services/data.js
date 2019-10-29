@@ -138,6 +138,8 @@ var Data = (async function() {
       parent = response.parent;
       subs.parent({ parent });
     }
+
+    return response;
   };
 
   if (await AsyncStorage.getItem("authorization")) fetch();
