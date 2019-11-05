@@ -36,6 +36,8 @@ target 'SmartKids' do
 
   pod 'react-native-spinkit', :path => '../node_modules/react-native-spinkit'
 
+  pod 'RNFirebase', :path => '../node_modules/react-native-firebase'
+
   target 'SmartKidsTests' do
     inherit! :search_paths
     # Pods for testing

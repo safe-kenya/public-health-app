@@ -14,6 +14,7 @@ import DataService from "../../services/data";
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "white",
     ...StyleSheet.absoluteFillObject,
     alignItems: "center"
   },

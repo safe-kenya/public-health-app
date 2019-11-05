@@ -43,6 +43,9 @@ class Screen extends React.Component {
   render() {
     return (
       <ScrollView
+        style={{
+          backgroundColor: "white"
+        }}
         refreshControl={
           <RefreshControl
             refreshing={this.state.refreshing}

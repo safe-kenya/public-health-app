@@ -197,6 +197,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-firebase')
     implementation project(':react-native-push-notification')
     implementation project(':react-native-spinkit')
     implementation project(':react-native-android-sms-listener')
@@ -205,6 +206,16 @@ dependencies {
     implementation project(':react-native-gesture-handler')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
+    compile project(':react-native-push-notification')
+    compile ('com.google.android.gms:play-services-gcm:+') {
+        force = true;
+    }
+
+    implementation "com.google.firebase:firebase-messaging:20.0.0"
+
+    compile(project(':react-native-firebase')) {   
+        transitive = false
+    }
 
     if (enableHermes) {
       def hermesPath = "../../node_modules/hermesvm/android/";
@@ -223,3 +234,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+// apply plugin: 'com.google.gms:google-services:3.2.1'

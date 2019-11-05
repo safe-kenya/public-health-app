@@ -58,6 +58,7 @@ class Screen extends React.Component {
   render() {
     return (
       <GiftedChat
+        style={{ backgroundColor: "white" }}
         messages={[...this.state.messages, this.state.defaultMessage]}
         onSend={messages => this.onSend(messages)}
         user={{
