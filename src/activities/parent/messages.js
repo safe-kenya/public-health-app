@@ -70,12 +70,12 @@ class Screen extends React.Component {
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff trip start, on time"
+            title="Bus dropoff trip start, on time"
             description="Logged  at 4:00 pm"
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff Home, late"
+            title="Bus dropoff Home, late"
             description="Logged  at 5:43 am"
             left={props => <List.Icon {...props} icon="location-on" />}
           /> */}
@@ -94,12 +94,12 @@ class Screen extends React.Component {
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff trip start, on time"
+            title="Bus dropoff trip start, on time"
             description="Logged  at 4:00 pm"
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff Home, late"
+            title="Bus dropoff Home, late"
             description="Logged  at 5:43 am"
             left={props => <List.Icon {...props} icon="location-on" />}
           />
@@ -118,12 +118,12 @@ class Screen extends React.Component {
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff trip start, on time"
+            title="Bus dropoff trip start, on time"
             description="Logged  at 4:00 pm"
             left={props => <List.Icon {...props} icon="location-on" />}
           />
           <List.Item
-            title="Buss dropoff Home, late"
+            title="Bus dropoff Home, late"
             description="Logged  at 5:43 am"
             left={props => <List.Icon {...props} icon="location-on" />}
           />

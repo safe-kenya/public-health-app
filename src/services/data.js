@@ -6,7 +6,7 @@ import { query, mutate } from "./requests";
 
 const studentsData = [];
 const parentsData = [];
-const bussesData = [];
+const busesData = [];
 const driversData = [];
 const driverData = {};
 const routesData = [];
@@ -22,7 +22,7 @@ var Data = (async function() {
   var drivers = driversData;
   var driver = driverData;
   var parent = parentData;
-  var busses = bussesData;
+  var buses = busesData;
   var routes = routesData;
   var schedules = schedulesData;
   var locationWatchId = null;
@@ -33,7 +33,7 @@ var Data = (async function() {
   emitize(subs, "students");
   emitize(subs, "parents");
   emitize(subs, "drivers");
-  emitize(subs, "busses");
+  emitize(subs, "buses");
   emitize(subs, "routes");
   emitize(subs, "schedules");
   emitize(subs, "driver");
@@ -208,7 +208,7 @@ var Data = (async function() {
           schedule.route = routes.filter(
             route => route.id === schedule.route
           )[0];
-          schedule.bus = busses.filter(bus => bus.id === schedule.bus)[0];
+          schedule.bus = buses.filter(bus => bus.id === schedule.bus)[0];
           schedules = [...schedules, schedule];
           subs.schedules({ schedules });
           resolve();
