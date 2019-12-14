@@ -136,7 +136,8 @@ class LoginScreen extends React.Component {
     }
   }
 
-  async login() {
+  login = async () => {
+    console.log('called')
     const _this = this;
     this.setState({ loading: true });
     try {
@@ -256,6 +257,13 @@ class LoginScreen extends React.Component {
           >
             {this.state.password ? "Login" : "Send Login Code"}
           </Button>
+          <View style={{ alignItems: "center" }}>
+            <Text>{`or`}</Text>
+            <Text
+              style={{ color: "blue" }}
+              onPress={() => this.props.navigation.navigate("ParentLogin")}
+            >{`Login as a parent`}</Text>
+          </View>
         </View>
 
         {/* {!this.state.loading ? (
@@ -273,13 +281,7 @@ class LoginScreen extends React.Component {
             >
               {this.state.password ? "Login" : "Send Login Code"}
             </Button>
-            <View style={{ alignItems: "center" }}>
-              <Text>{`or`}</Text>
-              <Text
-                style={{ color: "blue" }}
-                onPress={() => this.props.navigation.navigate("ParentLogin")}
-              >{`Login as a parent`}</Text>
-            </View>
+            
           </View>
         ) : null} */}
       </View>

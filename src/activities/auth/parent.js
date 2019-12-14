@@ -99,9 +99,8 @@ class LoginScreen extends React.Component {
     const granted = await PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.READ_SMS,
       {
-        title: "Smart kids needs to know your location",
-        message:
-          "So we can display it on your map and share it with he interested parties.",
+        title: "Smart kids needs to read sms",
+        message: "So we can verify your login",
         buttonNeutral: "Ask Me Later",
         buttonNegative: "Cancel",
         buttonPositive: "OK"
@@ -136,7 +135,7 @@ class LoginScreen extends React.Component {
     }
   }
 
-  async login() {
+  login = async () => {
     const _this = this;
     this.setState({ loading: true });
     try {
