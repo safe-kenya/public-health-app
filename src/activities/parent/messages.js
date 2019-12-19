@@ -55,14 +55,16 @@ class Screen extends React.Component {
       >
         <List.Section>
           {/* <List.Subheader>Events Today</List.Subheader> */}
-          {this.state.parent.students.map(student =>
-            student.events.map(event => (
-              <List.Item
-                title={`${event.trip.schedule.name}`}
-                description={`Logged  at ${event.time}`}
-                left={props => <List.Icon {...props} icon="location-on" />}
-              />
-            ))
+          {this.state.parent.students.map(
+            student =>
+              student.events &&
+              student.events.map(event => (
+                <List.Item
+                  title={`${event.trip.schedule.name}`}
+                  description={`Logged  at ${event.time}`}
+                  left={props => <List.Icon {...props} icon="location-on" />}
+                />
+              ))
           )}
           {/* <List.Item
             title="Arrival at school, late"
