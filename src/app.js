@@ -11,8 +11,7 @@ import PushNotificationIOS from "react-native";
 import PubNub from "pubnub";
 var PushNotification = require("react-native-push-notification");
 
-import ParentLogin from "./activities/auth/parent";
-import DriverLogin from "./activities/auth/driver";
+import Login from "./activities/auth/login";
 import ParentHome from "./activities/parent/home";
 import AgentHome from "./activities/agent/home";
 
@@ -32,18 +31,12 @@ export default createAppContainer(
           header: null
         }
       },
-      ParentLogin: {
-        screen: ParentLogin,
+      Login: {
+        screen: Login,
         navigationOptions: {
           header: null
         }
       },
-      DriverLogin: {
-        screen: DriverLogin,
-        navigationOptions: {
-          header: null
-        }
-      }
     },
     {
       initialRouteName: "Loading"

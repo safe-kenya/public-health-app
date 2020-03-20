@@ -18,32 +18,38 @@ import DataService from "../../services/data";
 let Data;
 // import imageLogo from "../assets/images/logo.png";
 
-async function requestReadSmsPermission() {
-  try {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.READ_SMS,
-      {
-        title: "Auto Verification OTP",
-        message: "need access to read sms, to verify OTP",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
-      }
-    );
+// {
+//   title: "Auto Verification OTP",
+//   message: "need access to read sms, to verify OTP",
+//   buttonNeutral: "Ask Me Later",
+//   buttonNegative: "Cancel",
+//   buttonPositive: "OK"
+// }
 
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      console.log("You can read sms");
-    } else {
-      ToastAndroid.show("Read SMS perms denied " + granted, ToastAndroid.SHORT);
+async function requestPermission(perms) {
+  perms.map(async ({ perm, reason }) => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        perm,
+        reason
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can now", perm);
+      } else {
+        ToastAndroid.show("Perm denied " + perm, ToastAndroid.SHORT);
+      }
+    } catch (err) {
+      console.warn("Perm err", { perm });
     }
-  } catch (err) {
-    console.warn("sms perms err", { err });
-  }
+  })
+
 }
 
 class LoginScreen extends React.Component {
   state = {
-    user: null,
+    user: '0711657108',
+    userData: null,
     password: null,
     error: null,
     validating: false,
@@ -79,7 +85,18 @@ class LoginScreen extends React.Component {
       await AsyncStorage.setItem("authorization", token);
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 
-      this.props.navigation.navigate("DriverHome");
+      this.setState({ userData })
+
+      console.log(userData)
+
+      if(userData.userType === 'parent')
+        this.props.navigation.navigate("ParentHome");
+
+      if(userData.userType === 'driver')
+        this.props.navigation.navigate("DriverHome");
+
+      if(userData.userType === 'student')
+        this.props.navigation.navigate("StudentHome");
 
       Data.refetch();
       return;
@@ -92,23 +109,62 @@ class LoginScreen extends React.Component {
   async componentDidMount() {
     Data = await DataService;
     const _this = this;
-    await PermissionsAndroid.requestMultiple([
-      PermissionsAndroid.PERMISSIONS.READ_SMS
-    ]);
 
-    const granted = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.READ_SMS,
+    await requestPermission([
       {
-        title: "Smart kids needs to know your location",
-        message:
-          "So we can display it on your map and share it with he interested parties.",
-        buttonNeutral: "Ask Me Later",
-        buttonNegative: "Cancel",
-        buttonPositive: "OK"
+        perm: PermissionsAndroid.PERMISSIONS.READ_SMS,
+        reason: {
+          title: "Smart kids needs to read security password",
+          message:
+            "So we can display it on your map and share it with he interested parties.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
+        },
+      },
+      {
+        perm: PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+        reason: {
+          title: "Smart kids needs to receive security password",
+          message:
+            "So we can display it on your map and share it with he interested parties.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
+        }
       }
-    );
+    ])
+    // await PermissionsAndroid.requestMultiple([
+    //   PermissionsAndroid.PERMISSIONS.READ_SMS,
+    //   PermissionsAndroid.PERMISSIONS.RECEIVE_SMS
+    // ]);
 
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    const [readGranted, recieveGranted] = await Promise.all([
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.READ_SMS,
+        {
+          title: "Smart kids needs to know your location",
+          message:
+            "So we can display it on your map and share it with he interested parties.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
+        }
+      ),
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+        {
+          title: "Smart kids needs to know your location",
+          message:
+            "So we can display it on your map and share it with he interested parties.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK"
+        }
+      )
+    ])
+
+    if (readGranted && recieveGranted) {
       ToastAndroid.show(`Listening to messages`, ToastAndroid.SHORT);
       const subscription = SmsListener.addListener(async message => {
         ToastAndroid.show(message.body, ToastAndroid.SHORT);
@@ -132,7 +188,7 @@ class LoginScreen extends React.Component {
         }
       });
     } else {
-      ToastAndroid.show(`No Reading Sms Permisions`, ToastAndroid.SHORT);
+      console.log(`No Reading Sms Permisions ${JSON.stringify({ readGranted, recieveGranted })} `, ToastAndroid.SHORT);
     }
   }
 
@@ -149,8 +205,8 @@ class LoginScreen extends React.Component {
         },
         password
           ? {
-              password
-            }
+            password
+          }
           : {}
       );
       const res = await axios.post(`${API}/auth/login`, authData);
@@ -182,15 +238,15 @@ class LoginScreen extends React.Component {
         );
       }
 
-      if (__DEV__ && !password && !token) {
-        setTimeout(() => {
-          const tmpPass = "0000";
-          _this.setState({ error: null, loading: true });
-          _this.verifyCode(tmpPass);
-          _this.setState({ error: null, loading: false });
-          _this.setState({ password: tmpPass });
-        }, 3000);
-      }
+      // if (__DEV__ && !password && !token) {
+      //   setTimeout(() => {
+      //     const tmpPass = "0000";
+      //     _this.setState({ error: null, loading: true });
+      //     _this.verifyCode(tmpPass);
+      //     _this.setState({ error: null, loading: false });
+      //     _this.setState({ password: tmpPass });
+      //   }, 3000);
+      // }
 
       // check if otp sending was a success and if it was, show
     } catch (err) {
@@ -212,7 +268,7 @@ class LoginScreen extends React.Component {
     return (
       <View style={styles.container}>
         <View style={styles.form}>
-          <Image source={imageLogo} style={styles.logo} />
+          {/* <Image source={imageLogo} style={styles.logo} /> */}
           <TextInput
             disabled={this.state.loading}
             label="Phone Number"
@@ -225,17 +281,19 @@ class LoginScreen extends React.Component {
             onChangeText={user => this.setState({ user })}
           />
           {
-            <TextInput
-              disabled={this.state.loading}
-              label="Password"
-              mode="outlined"
-              style={{
-                marginBottom: 10
-              }}
-              value={this.state.password}
-              secureTextEntry={true}
-              onChangeText={password => this.setState({ password })}
-            />
+            !this.state.password && !this.state.userData
+              ? null
+              : <TextInput
+                disabled={this.state.loading}
+                label="Password"
+                mode="outlined"
+                style={{
+                  marginBottom: 10
+                }}
+                value={this.state.password}
+                secureTextEntry={true}
+                onChangeText={password => this.setState({ password })}
+              />
           }
 
           {!this.state.error ? null : (
@@ -255,15 +313,15 @@ class LoginScreen extends React.Component {
             mode="contained"
             onPress={() => this.login()}
           >
-            {this.state.password ? "Login" : "Send Login Code"}
+            {!this.state.userData ? "Login" : `Successfull, Welcome ${this.state.userData.name}!`}
           </Button>
-          <View style={{ alignItems: "center" }}>
+          {/* <View style={{ alignItems: "center" }}>
             <Text>{`or`}</Text>
             <Text
               style={{ color: "blue" }}
               onPress={() => this.props.navigation.navigate("ParentLogin")}
             >{`Login as a parent`}</Text>
-          </View>
+          </View> */}
         </View>
 
         {/* {!this.state.loading ? (

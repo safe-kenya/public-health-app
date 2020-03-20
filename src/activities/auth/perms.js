@@ -96,18 +96,31 @@ class LoginScreen extends React.Component {
       PermissionsAndroid.PERMISSIONS.READ_SMS
     ]);
 
-    const granted = await PermissionsAndroid.check(
+    const readGranted = await PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.READ_SMS,
       {
-        title: "Smart kids needs to read sms",
-        message: "So we can verify your login",
+        title: "Smart kids needs to know your location",
+        message:
+          "So we can display it on your map and share it with he interested parties.",
         buttonNeutral: "Ask Me Later",
         buttonNegative: "Cancel",
         buttonPositive: "OK"
       }
     );
 
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    const recieveGranted = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.RECEIVE_SMS,
+      {
+        title: "Smart kids needs to know your location",
+        message:
+          "So we can display it on your map and share it with he interested parties.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK"
+      }
+    );
+
+    if (readGranted == PermissionsAndroid.RESULTS.GRANTED && recieveGranted == PermissionsAndroid.RESULTS.GRANTED) {
       ToastAndroid.show(`Listening to messages`, ToastAndroid.SHORT);
       const subscription = SmsListener.addListener(async message => {
         ToastAndroid.show(message.body, ToastAndroid.SHORT);
@@ -131,11 +144,12 @@ class LoginScreen extends React.Component {
         }
       });
     } else {
-      ToastAndroid.show(`No Reading Sms Permisions`, ToastAndroid.SHORT);
+      ToastAndroid.show(`No Reading Sms Permisions ${JSON.stringify({ readGranted, recieveGranted })} `, ToastAndroid.SHORT);
     }
   }
 
   login = async () => {
+    console.log('called')
     const _this = this;
     this.setState({ loading: true });
     try {
@@ -147,8 +161,8 @@ class LoginScreen extends React.Component {
         },
         password
           ? {
-              password
-            }
+            password
+          }
           : {}
       );
       const res = await axios.post(`${API}/auth/login`, authData);
@@ -180,7 +194,7 @@ class LoginScreen extends React.Component {
         );
       }
 
-      if (__DEV__ && !password) {
+      if (__DEV__ && !password && !token) {
         setTimeout(() => {
           const tmpPass = "0000";
           _this.setState({ error: null, loading: true });
@@ -242,39 +256,46 @@ class LoginScreen extends React.Component {
             </Text>
           )}
 
-          {!this.state.loading ? (
-            <>
-              <Button
-                style={{ "padding-top": 20 }}
-                loading={this.state.loading}
-                disabled={
-                  (!this.state.password && !this.state.user) ||
-                  this.state.loading ||
-                  this.state.validating
-                }
-                mode="contained"
-                onPress={() => this.login()}
-              >
-                {this.state.password ? "Login" : "Send Login Code"}
-              </Button>
-              <View style={{ alignItems: "center" }}>
-                <Text>{`or`}</Text>
-                <Text
-                  style={{ color: "blue" }}
-                  onPress={() => this.props.navigation.navigate("DriverLogin")}
-                >{`Login as a driver`}</Text>
-              </View>
-            </>
-          ) : null}
+          <Button
+            style={{ "padding-top": 10 }}
+            loading={this.state.loading}
+            disabled={
+              (!this.state.password && !this.state.user) ||
+              this.state.loading ||
+              this.state.validating
+            }
+            mode="contained"
+            onPress={() => this.login()}
+          >
+            {this.state.password ? "Login" : "Send Login Code"}
+          </Button>
+          <View style={{ alignItems: "center" }}>
+            <Text>{`or`}</Text>
+            <Text
+              style={{ color: "blue" }}
+              onPress={() => this.props.navigation.navigate("ParentLogin")}
+            >{`Login as a parent`}</Text>
+          </View>
         </View>
-        {this.state.loading ? (
-          <Spinner
-            style={{ marginBottom: 100 }}
-            isVisible={true}
-            type={"Circle"}
-            color={"black"}
-          />
-        ) : null}
+
+        {/* {!this.state.loading ? (
+          <View>
+            <Button
+              style={{ "padding-top": 0 }}
+              loading={this.state.loading}
+              disabled={
+                (!this.state.password && !this.state.user) ||
+                this.state.loading ||
+                this.state.validating
+              }
+              mode="contained"
+              onPress={() => this.login()}
+            >
+              {this.state.password ? "Login" : "Send Login Code"}
+            </Button>
+            
+          </View>
+        ) : null} */}
       </View>
     );
   }

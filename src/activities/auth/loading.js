@@ -34,7 +34,7 @@ class AuthLoading extends React.Component {
         user.userType == "driver" ? "DriverHome" : "ParentHome"
       );
     } else {
-      this.props.navigation.navigate("DriverLogin");
+      this.props.navigation.navigate("Login");
     }
   };
   render() {
@@ -62,7 +62,7 @@ class AuthLoading extends React.Component {
               style={{ margin: 30 }}
               onPress={() => {
                 AsyncStorage.clear();
-                this.props.navigation.navigate("DriverLogin");
+                this.props.navigation.navigate("Login");
               }}
             />
           </View>
